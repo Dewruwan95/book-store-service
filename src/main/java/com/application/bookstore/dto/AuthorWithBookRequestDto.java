@@ -2,11 +2,12 @@ package com.application.bookstore.dto;
 
 import java.util.List;
 
-public class AuthorRequestDto {
+public class AuthorWithBookRequestDto {
     private String firstName;
     private String  lastName;
     private String email;
     private String nationality;
+    private List<Integer> bookIds;
 
 
 
@@ -42,5 +43,12 @@ public class AuthorRequestDto {
         this.nationality = nationality;
     }
 
+    public List<Integer> getBookIds() {
+        return bookIds;
+    }
+
+    public void setBookIds(List<Integer> bookIds) {
+        this.bookIds = bookIds;
+    }
 
 }

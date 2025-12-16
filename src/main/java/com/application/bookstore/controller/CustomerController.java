@@ -29,7 +29,7 @@ public class CustomerController {
         List<CustomerDto> response = customerService.getAll();
 
         if (response.isEmpty()) {
-            return ResponseEntity.noContent().build(); // Better than returning null
+            return ResponseEntity.noContent().build();
         } else {
             return ResponseEntity.ok(response);
         }

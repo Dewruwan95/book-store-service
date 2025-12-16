@@ -8,8 +8,6 @@ public class AuthorDto {
     private String lastName;
     private String email;
     private String nationality;
-
-
     private List<BookRequestDto> bookIds;
 
     public List<BookRequestDto> getBookIds() {

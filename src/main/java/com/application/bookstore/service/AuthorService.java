@@ -1,20 +1,16 @@
 package com.application.bookstore.service;
 
-import com.application.bookstore.dto.AuthorDto;
-import com.application.bookstore.dto.AuthorRequestDto;
-import com.application.bookstore.dto.BookDto;
-import com.application.bookstore.dto.BookRequestDto;
+import com.application.bookstore.dto.*;
+import com.application.bookstore.exception.ValidationException;
 import com.application.bookstore.model.Author;
 import com.application.bookstore.model.Book;
 import com.application.bookstore.repository.AuthorRepository;
 import com.application.bookstore.repository.BookRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 public class AuthorService {
@@ -27,106 +23,170 @@ public class AuthorService {
         this.bookRepository = bookRepository;
     }
 
-    //create author
-    public AuthorDto createAuthor(AuthorDto authorDto){
 
-        Author author=new Author();
-        author.setFirstName(authorDto.getFirstName());
-        author.setLastName(authorDto.getLastName());
-        author.setEmail(authorDto.getEmail());
-        author.setNationality(authorDto.getNationality());
-
-        final Author saveAuthor = authorRepository.save(author);
-        final AuthorDto result = toDto(saveAuthor);
-
-        return result;
+    //--------------------------------------------------------------
+    //------------------- Get All Authors-- ------------------------
+    //--------------------------------------------------------------
+    public List<AuthorDto> getAll() {
+        return toDto(authorRepository.findAll());
 
     }
 
-    public AuthorDto createAuthorWithBooks(AuthorRequestDto authorDto){
-        Author author=new Author();
-        author.setId(authorDto.getId());
-        author.setFirstName(authorDto.getFirstName());
-        author.setLastName(authorDto.getLastName());
-        author.setEmail(authorDto.getEmail());
-        author.setNationality(authorDto.getNationality());
+    //--------------------------------------------------------------
+    //------------------- Get Single Author By Id-------------------
+    //--------------------------------------------------------------
+    public AuthorDto getById(int id) {
+//        final Author author = authorRepository.findById(id).orElseThrow(() -> new RuntimeException("Author not found"));
+//        return toDto(author);
+
+        return authorRepository.findById(id).map(author -> toDto(author)).orElseThrow(() -> new EntityNotFoundException("Author not found with id " + id));
+    }
 
 
-//        if(authorDto.getBookIds()==null|| authorDto.getBookIds().isEmpty()){
-//            final Author save = authorRepository.save(author);
-//            return toDto(save);
-//        }
-//with books
-        List<Book> books=new ArrayList<>(bookRepository.findAllById(authorDto.getBookIds()));
+    //--------------------------------------------------------------
+    //------------------- Create New Author ------------------------
+    //--------------------------------------------------------------
+    public AuthorDto create(AuthorRequestDto authorRequestDto) {
 
-        for (Book book:books){
+        validateAuthorRequestDto(authorRequestDto);
+
+        Author author = toEntity(authorRequestDto);
+        final Author savedAuthor = authorRepository.save(author);
+        return toDto(savedAuthor);
+    }
+
+    //--------------------------------------------------------------
+    //------------------- Create New Author With Book --------------
+    //--------------------------------------------------------------
+    public AuthorDto createWithBooks(AuthorWithBookRequestDto authorWithBookRequestDto) {
+
+        AuthorRequestDto authorRequestDto = new AuthorRequestDto();
+
+        authorRequestDto.setFirstName(authorWithBookRequestDto.getFirstName());
+        authorRequestDto.setLastName(authorWithBookRequestDto.getLastName());
+        authorRequestDto.setEmail(authorWithBookRequestDto.getEmail());
+        authorRequestDto.setNationality(authorWithBookRequestDto.getNationality());
+
+        validateAuthorRequestDto(authorRequestDto);
+
+        Author author = toEntity(authorRequestDto);
+
+
+        List<Book> books = new ArrayList<>(bookRepository.findAllById(authorWithBookRequestDto.getBookIds()));
+
+        for (Book book : books) {
             book.getAuthors().add(author);
         }
+
         author.setBooks(books);
-        final Author save = authorRepository.save(author);
-        return toDto(save);
+
+        final Author savedAuthor = authorRepository.save(author);
+        return toDto(savedAuthor);
 
 
     }
 
-    //Get All Authors
-    public List<AuthorDto> getAllAuthors(){
-        final List<AuthorDto> result = authorRepository.findAll()
-                .stream()
-                .map(author -> toDto(author))
-                .toList();
-        return result;
+    //--------------------------------------------------------------
+    //------------------- Update Author ----------------------------
+    //--------------------------------------------------------------
+    public AuthorDto update(int id, AuthorDto authorDto) {
+        Author existingAuthor = authorRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Author not found with id " + id));
 
-    }
-    //get Author by Id
+        if (authorDto.getFirstName() != null) {
+            existingAuthor.setFirstName(authorDto.getFirstName());
+        }
+        if (authorDto.getLastName() != null) {
+            existingAuthor.setLastName(authorDto.getLastName());
+        }
+        if (authorDto.getEmail() != null) {
+            existingAuthor.setEmail(authorDto.getEmail());
+        }
+        if (authorDto.getNationality() != null) {
+            existingAuthor.setNationality(authorDto.getNationality());
+        }
 
-    public AuthorDto getAuthorById(int id){
-        final Author author = authorRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Author not found"));
-        return toDto(author);
 
-    }
+        final Author savedAuthor = authorRepository.save(existingAuthor);
 
-    //update
-    public AuthorDto updateAuthor(int id,AuthorDto authorDto){
-        Author author=authorRepository.findById(id)
-                .orElseThrow(()->new RuntimeException("Author not found"));
-        author.setFirstName(authorDto.getFirstName());
-        author.setLastName(authorDto.getLastName());
-        author.setEmail(authorDto.getEmail());
-        author.setNationality(authorDto.getNationality());
-
-        final Author saveAuthor = authorRepository.save(author);
-        final AuthorDto result = toDto(saveAuthor);
-        return result;
+        return toDto(savedAuthor);
     }
 
-    //delete
-    public void deleteAuthor(int id){
+
+    //--------------------------------------------------------------
+    //------------------- Delete Author ----------------------------
+    //--------------------------------------------------------------
+    public void delete(int id) {
         authorRepository.deleteById(id);
     }
 
 
+    //--------------------------------------------------------------
+    //------------------- Validate AuthorRequestDto --------------
+    //--------------------------------------------------------------
+    private void validateAuthorRequestDto(AuthorRequestDto authorRequestDto) {
+        if (authorRequestDto.getFirstName() == null) {
+            throw new ValidationException("firstName");
+        }
 
+        if (authorRequestDto.getLastName() == null) {
+            throw new ValidationException("lastName");
+        }
 
-    //entity ->Dto
-    private AuthorDto toDto(Author author){
-        AuthorDto dto=new AuthorDto();
-        dto.setId(author.getId());
-        dto.setFirstName(author.getFirstName());
-        dto.setLastName(author.getLastName());
-        dto.setEmail(author.getEmail());
-        dto.setNationality(author.getNationality());
+        if (authorRequestDto.getEmail() == null) {
+            throw new ValidationException("email");
+        }
 
-        final List<BookRequestDto> dtos = author.getBooks().stream()
-                .map(book -> {
-                    BookRequestDto bookRequestDto = new BookRequestDto();
-                    bookRequestDto.setId(book.getId());
-                    bookRequestDto.setTitle(book.getTitle());
-                    return bookRequestDto;
-                }).toList();
-        dto.setBookIds(dtos);
+        if (!authorRequestDto.getEmail().matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+            throw new ValidationException("email", "Invalid email format");
+        }
 
-        return dto;
+//        if (authorRequestDto.getNationality() == null) {
+//            throw new ValidationException("nationality");
+//        }
     }
+
+    //--------------------------------------------------------------
+    //----------------- Convert Author to AuthorDto ----------------
+    //--------------------------------------------------------------
+    public List<AuthorDto> toDto(List<Author> authors) {
+        List<AuthorDto> result = authors.stream().map(author -> toDto(author)).toList();
+
+        return result;
+    }
+
+    private AuthorDto toDto(Author author) {
+        if (author == null) {
+            return null;
+        }
+
+        AuthorDto result = new AuthorDto();
+        result.setId(author.getId());
+        result.setFirstName(author.getFirstName());
+        result.setLastName(author.getLastName());
+        result.setEmail(author.getEmail());
+        result.setNationality(author.getNationality());
+
+
+        return result;
+    }
+
+
+    //--------------------------------------------------------------
+    // ------------ convert AuthorDto to Author --------------------
+    //--------------------------------------------------------------
+    private Author toEntity(AuthorRequestDto authorDto) {
+        if (authorDto == null) {
+
+            return null;
+        }
+        Author author = new Author();
+        author.setFirstName(authorDto.getFirstName());
+        author.setLastName(authorDto.getLastName());
+        author.setEmail(authorDto.getEmail());
+        author.setNationality(authorDto.getNationality());
+
+        return author;
+    }
+
+
 }

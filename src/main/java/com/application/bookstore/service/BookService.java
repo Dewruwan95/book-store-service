@@ -2,7 +2,9 @@ package com.application.bookstore.service;
 
 import com.application.bookstore.dto.AuthorDto;
 import com.application.bookstore.dto.BookDto;
+import com.application.bookstore.dto.BookRequestDto;
 import com.application.bookstore.dto.BookWithNewAuthorDto;
+import com.application.bookstore.exception.ValidationException;
 import com.application.bookstore.model.Author;
 import com.application.bookstore.model.Book;
 import com.application.bookstore.repository.AuthorRepository;
@@ -15,6 +17,7 @@ import java.util.Optional;
 
 @Service
 public class BookService {
+
     private BookRepository bookRepository;
 
     private AuthorRepository authorRepository;
@@ -139,6 +142,31 @@ public class BookService {
 
     }
 
+
+    //--------------------------------------------------------------
+    //------------------- Validate BookRequestDto ------------------
+    //--------------------------------------------------------------
+    private void validateBookRequestDto(BookRequestDto bookRequestDto){
+        if(bookRequestDto.getTitle()==null){
+            throw new ValidationException("title");
+        }
+        if(bookRequestDto.getGenre()==null){
+            throw new ValidationException("genre");
+        }
+        if (bookRequestDto.getPrice()==0){
+            throw new ValidationException("price");
+        }
+        if (bookRequestDto.getPrice()<0){
+            throw new ValidationException("stock","price should be greater than 0");
+        }
+//        if (bookRequestDto.getStock()==0){
+//            throw new ValidationException("stock");
+//        }
+
+        if (bookRequestDto.getStock()<0){
+            throw new ValidationException("stock","stock should be greater than 0");
+        }
+    }
 
 
 
