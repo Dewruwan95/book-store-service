@@ -55,3 +55,6 @@ The application follows **Layered Architecture**:
 - **Customer ↔ Book** → One-to-Many (via `Purchase` entity)
 
 > A separate `Purchase` entity is used to support extensibility (date, customerId (customer  Purchased),bookId(which book purchased)). 
+
+##  Database Diagram
+![Database Diagram for Book Store Service](src/main/resources/database_diagram.png)
