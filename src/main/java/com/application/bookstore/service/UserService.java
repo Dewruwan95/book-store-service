@@ -29,7 +29,6 @@ public class UserService implements UserDetailsService {
         final AppUser appUser = userRepository.findByUsername(username);
         if(appUser == null){
             throw new UsernameNotFoundException("User not found: " + username);
-
         }
         final UserDetails machedUser = User.withUsername(appUser.getUserName()).password(appUser.getPassword()).roles(appUser.getRoles().split(",")).build();
 
@@ -39,10 +38,10 @@ public class UserService implements UserDetailsService {
         return machedUser;
     }
 
-//        @PostConstruct // use to execute after dependency injection to initialization
-//    public void initData(){
-//        userRepository.save(new AppUser("admin",passwordEncoder.encode("admin"),"ADMIN,MANAGER,USER"));
-//        userRepository.save(new AppUser("manager",passwordEncoder.encode("manager"),"MANAGER,USER"));
-//        userRepository.save(new AppUser("user1",passwordEncoder.encode("user1"),"USER"));
-//    }
+        @PostConstruct // use to execute after dependency injection to initialization
+    public void initData(){
+        userRepository.save(new AppUser("admin",passwordEncoder.encode("admin"),"ADMIN,MANAGER,USER"));
+        userRepository.save(new AppUser("manager",passwordEncoder.encode("manager"),"MANAGER,USER"));
+        userRepository.save(new AppUser("user1",passwordEncoder.encode("user1"),"USER"));
+    }
 }

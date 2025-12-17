@@ -17,7 +17,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private static final String[] PUBLIC_URLS = {"/home"};
+//    private static final String[] PUBLIC_URLS = {"/home"};
     private static final String[] H2_CONSOLE_WHITELIST = {"/h2-console/**"};
     private static final String[] SWAGGER_UI_WHITELIST = {"/swagger-ui.html", "/swagger-ui/**", "/webjars/**", "/swagger-resources/**", "/v3/api-docs/**"};
 
@@ -30,7 +30,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests(requests -> requests
                 .requestMatchers(HttpMethod.GET, "/api/book-store-service/v1/books").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/book-store-service/v1/books/{id}").permitAll()
-                .requestMatchers(PUBLIC_URLS).permitAll()
+//                .requestMatchers(PUBLIC_URLS).permitAll()
                 .requestMatchers(SWAGGER_UI_WHITELIST).permitAll()
                 .requestMatchers(H2_CONSOLE_WHITELIST).permitAll()
                 .anyRequest().authenticated());
@@ -40,18 +40,18 @@ public class SecurityConfig {
         return http.build();
     }
 
-//    @Bean
-//    public UserDetailsService userDetailService() {
-//        return new UserService();
-//    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
 //        return NoOpPasswordEncoder.getInstance();
         return new BCryptPasswordEncoder();
-
-
     }
+
+    //    @Bean
+//    public UserDetailsService userDetailService() {
+//        return new UserService();
+//    }
+
 
 
 }

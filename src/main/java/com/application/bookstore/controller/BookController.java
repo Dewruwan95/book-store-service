@@ -7,6 +7,7 @@ import com.application.bookstore.service.BookService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -47,7 +48,7 @@ public class BookController {
 
     //------------------- Create New Book ------------------------
     @PostMapping
-    // @PreAuthorize("hasRole('ADMIN')")
+     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<BookDto> save(@RequestBody BookRequestDto bookRequestDto) {
         final BookDto response = bookService.create(bookRequestDto);
 

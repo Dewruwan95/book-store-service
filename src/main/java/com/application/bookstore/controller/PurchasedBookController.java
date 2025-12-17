@@ -4,13 +4,14 @@ import com.application.bookstore.dto.AuthorDto;
 import com.application.bookstore.dto.PurchasedBookDto;
 import com.application.bookstore.service.PurchasedBookService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/book-store-service/v1/purchases")
+@RequestMapping("/api/book-store-service/v1/purchase")
 @SecurityRequirement(name = "basicAuth")
 public class PurchasedBookController {
 
@@ -22,7 +23,12 @@ public class PurchasedBookController {
 
     @PostMapping
     public ResponseEntity<PurchasedBookDto> purchaseBook(@RequestBody PurchasedBookDto dto) {
-        return ResponseEntity.ok(purchaseService.purchaseBook(dto));
+        PurchasedBookDto created = purchaseService.purchaseBook(dto);
+
+        // Return 201 CREATED with location header
+        return ResponseEntity
+                .status(HttpStatus.CREATED)  // This returns 201
+                .body(created);
     }
 
     @GetMapping("/{id}")
