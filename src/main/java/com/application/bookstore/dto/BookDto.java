@@ -11,13 +11,13 @@ public class BookDto {
     private String genre;
     private int stock;
 
-    private List<AuthorDto> author;
+    private List<AuthorRequestDto> author;
 
-    public List<AuthorDto> getAuthor() {
+    public List<AuthorRequestDto> getAuthor() {
         return author;
     }
 
-    public void setAuthor(List<AuthorDto> author) {
+    public void setAuthor(List<AuthorRequestDto> author) {
         this.author = author;
     }
 

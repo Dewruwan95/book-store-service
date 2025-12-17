@@ -4,7 +4,7 @@ public class BookWithNewAuthorDto {
 
     private BookRequestDto book;
 
-    private AuthorDto author;
+    private AuthorRequestDto author;
 
     public BookRequestDto getBook() {
         return book;
@@ -14,11 +14,11 @@ public class BookWithNewAuthorDto {
         this.book = book;
     }
 
-    public AuthorDto getAuthor() {
+    public AuthorRequestDto getAuthor() {
         return author;
     }
 
-    public void setAuthor(AuthorDto author) {
+    public void setAuthor(AuthorRequestDto author) {
         this.author = author;
     }
 }

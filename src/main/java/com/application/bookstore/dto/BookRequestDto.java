@@ -1,6 +1,7 @@
 package com.application.bookstore.dto;
 
 public class BookRequestDto {
+
     private String title;
     private double price;
     private String genre;
@@ -38,6 +39,4 @@ public class BookRequestDto {
         this.genre = genre;
     }
 
-    public void setId(int id) {
-    }
 }

@@ -1,6 +1,7 @@
 package com.application.bookstore.controller;
 
 import com.application.bookstore.dto.BookDto;
+import com.application.bookstore.dto.BookRequestDto;
 import com.application.bookstore.dto.BookWithNewAuthorDto;
 import com.application.bookstore.service.BookService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -21,8 +22,9 @@ public class BookController {
         this.bookService = bookService;
     }
 
+    //------------------- Get All Books ------------------------
     @GetMapping
-    public ResponseEntity<List<BookDto>> getAllBooks(){
+    public ResponseEntity<List<BookDto>> getAll() {
         final List<BookDto> response = bookService.getAll();
         if (response.isEmpty()) {
 
@@ -33,45 +35,49 @@ public class BookController {
 
     }
 
+
+    //------------------- Get Single Book By Id ------------------------
     @GetMapping("/{id}")
-    public ResponseEntity<BookDto> getById(@PathVariable int id){
+    public ResponseEntity<BookDto> getById(@PathVariable int id) {
         final BookDto response = bookService.getById(id);
 
         return ResponseEntity.ok(response);
 
     }
 
-    //create book without author
-
+    //------------------- Create New Book ------------------------
     @PostMapping
     // @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<BookDto> save(@RequestBody BookDto book){
-        final BookDto response = bookService.createBook(book);
+    public ResponseEntity<BookDto> save(@RequestBody BookRequestDto bookRequestDto) {
+        final BookDto response = bookService.create(bookRequestDto);
 
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
+
+    //------------------- Create New Book With New Author ------------------------
     @PostMapping("/with-author")
-    public ResponseEntity<BookDto> createBookWithAuthor(@RequestBody BookWithNewAuthorDto book){
+    public ResponseEntity<BookDto> createBookWithAuthor(@RequestBody BookWithNewAuthorDto book) {
 
         final BookDto response = bookService.createBookWithNewAuthor(book);
 
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    //attach existing author to book
+
+    //------------------- Attach Existing Author To Book ------------------------
     @PutMapping("/{bookId}/author/{authorId}")
-    public ResponseEntity<BookDto> attachAuthor(@PathVariable int bookId, @PathVariable int authorId){
+    public ResponseEntity<BookDto> attachAuthor(@PathVariable int bookId, @PathVariable int authorId) {
         final BookDto response = bookService.attachAuthor(bookId, authorId);
 
         return ResponseEntity.ok(response);
 
     }
 
-
+    //------------------- Delete Author ------------------------
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteById(@PathVariable("id") int id){
-        bookService.deleteOneById(id);
+    public ResponseEntity<Void> deleteById(@PathVariable("id") int id) {
+        bookService.delete(id);
         return ResponseEntity.noContent().build();
     }
 }

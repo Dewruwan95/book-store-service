@@ -36,8 +36,6 @@ public class AuthorService {
     //------------------- Get Single Author By Id-------------------
     //--------------------------------------------------------------
     public AuthorDto getById(int id) {
-//        final Author author = authorRepository.findById(id).orElseThrow(() -> new RuntimeException("Author not found"));
-//        return toDto(author);
 
         return authorRepository.findById(id).map(author -> toDto(author)).orElseThrow(() -> new EntityNotFoundException("Author not found with id " + id));
     }
@@ -60,12 +58,7 @@ public class AuthorService {
     //--------------------------------------------------------------
     public AuthorDto createWithBooks(AuthorWithBookRequestDto authorWithBookRequestDto) {
 
-        AuthorRequestDto authorRequestDto = new AuthorRequestDto();
-
-        authorRequestDto.setFirstName(authorWithBookRequestDto.getFirstName());
-        authorRequestDto.setLastName(authorWithBookRequestDto.getLastName());
-        authorRequestDto.setEmail(authorWithBookRequestDto.getEmail());
-        authorRequestDto.setNationality(authorWithBookRequestDto.getNationality());
+        AuthorRequestDto authorRequestDto = authorWithBookRequestDto.getAuthor();
 
         validateAuthorRequestDto(authorRequestDto);
 
@@ -123,7 +116,7 @@ public class AuthorService {
     //--------------------------------------------------------------
     //------------------- Validate AuthorRequestDto --------------
     //--------------------------------------------------------------
-    private void validateAuthorRequestDto(AuthorRequestDto authorRequestDto) {
+    public void validateAuthorRequestDto(AuthorRequestDto authorRequestDto) {
         if (authorRequestDto.getFirstName() == null) {
             throw new ValidationException("firstName");
         }
@@ -166,6 +159,16 @@ public class AuthorService {
         result.setEmail(author.getEmail());
         result.setNationality(author.getNationality());
 
+        final List<BookRequestDto> bookRequestDtos = author.getBooks().stream()
+                .map(book -> {
+                    BookRequestDto bookRequestDto = new BookRequestDto();
+                    bookRequestDto.setTitle(book.getTitle());
+                    bookRequestDto.setPrice(book.getPrice());
+                    bookRequestDto.setGenre(book.getGenre());
+                    bookRequestDto.setStock(book.getStock());
+                    return bookRequestDto;
+                }).toList();
+        result.setBookIds(bookRequestDtos);
 
         return result;
     }
@@ -174,7 +177,7 @@ public class AuthorService {
     //--------------------------------------------------------------
     // ------------ convert AuthorDto to Author --------------------
     //--------------------------------------------------------------
-    private Author toEntity(AuthorRequestDto authorDto) {
+    public Author toEntity(AuthorRequestDto authorDto) {
         if (authorDto == null) {
 
             return null;

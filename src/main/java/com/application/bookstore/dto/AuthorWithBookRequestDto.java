@@ -3,44 +3,15 @@ package com.application.bookstore.dto;
 import java.util.List;
 
 public class AuthorWithBookRequestDto {
-    private String firstName;
-    private String  lastName;
-    private String email;
-    private String nationality;
+    private AuthorRequestDto author;
     private List<Integer> bookIds;
 
-
-
-    public String getFirstName() {
-        return firstName;
+    public AuthorRequestDto getAuthor() {
+        return author;
     }
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getNationality() {
-        return nationality;
-    }
-
-    public void setNationality(String nationality) {
-        this.nationality = nationality;
+    public void setAuthor(AuthorRequestDto author) {
+        this.author = author;
     }
 
     public List<Integer> getBookIds() {

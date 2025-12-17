@@ -1,14 +1,13 @@
 package com.application.bookstore.service;
 
-import com.application.bookstore.dto.AuthorDto;
-import com.application.bookstore.dto.BookDto;
-import com.application.bookstore.dto.BookRequestDto;
-import com.application.bookstore.dto.BookWithNewAuthorDto;
+import com.application.bookstore.dto.*;
 import com.application.bookstore.exception.ValidationException;
 import com.application.bookstore.model.Author;
 import com.application.bookstore.model.Book;
 import com.application.bookstore.repository.AuthorRepository;
 import com.application.bookstore.repository.BookRepository;
+import jakarta.persistence.EntityNotFoundException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -22,152 +21,182 @@ public class BookService {
 
     private AuthorRepository authorRepository;
 
+    @Autowired
+    private AuthorService authorService;
+
     public BookService(BookRepository bookRepository, AuthorRepository authorRepository) {
         this.bookRepository = bookRepository;
         this.authorRepository = authorRepository;
     }
 
-    public BookDto getById(int id){
+
+    //--------------------------------------------------------------
+    //------------------- Get All Books ----------------------------
+    //--------------------------------------------------------------
+    public List<BookDto> getAll() {
+
+        return toDto(bookRepository.findAll());
+    }
+
+    //--------------------------------------------------------------
+    //------------------- Get Single Book By Id --------------------
+    //--------------------------------------------------------------
+    public BookDto getById(int id) {
 
 
-        final Optional<Book> optionalBook = bookRepository.findById(id);
-        final BookDto result = optionalBook.map(book -> toDto(book))
-                .orElseThrow(() -> new RuntimeException("Book not found with id " + id));
-
-        return result;
+        return bookRepository.findById(id).map(book -> toDto(book)).orElseThrow(() -> new EntityNotFoundException("Book not found with id " + id));
 
 
     }
-    public List<BookDto> getAll(){
 
-        BookDto bookDto=new BookDto();
-        Author author=new Author();
-        final List<BookDto> result = bookRepository.findAll()
-                .stream()
-                .map(book -> toDto(book))
-                .toList();
+    //--------------------------------------------------------------
+    //------------------- Create New Book --------------------------
+    //--------------------------------------------------------------
+    public BookDto create(BookRequestDto bookRequestDto) {
 
-        return result;
+        validateBookRequestDto(bookRequestDto);
+
+        Book book = toEntity(bookRequestDto);
+        final Book savedBook = bookRepository.save(book);
+        return toDto(savedBook);
+
+
     }
 
-    //create book  without author
-    public BookDto createBook(BookDto bookDto){
+    //--------------------------------------------------------------
+    //------------------- Create New Book With New Author ----------
+    //--------------------------------------------------------------
+    public BookDto createBookWithNewAuthor(BookWithNewAuthorDto bookWithNewAuthorDto) {
 
-        Book book=new Book();
-        book.setTitle(bookDto.getTitle());
-        book.setGenre(bookDto.getGenre());
-        book.setStock(bookDto.getStock());
-        book.setPrice(bookDto.getPrice());
+        BookRequestDto bookRequestDto = bookWithNewAuthorDto.getBook();
+        AuthorRequestDto authorRequestDto = bookWithNewAuthorDto.getAuthor();
 
+        validateBookRequestDto(bookRequestDto);
+        authorService.validateAuthorRequestDto(authorRequestDto);
+
+        Book book = toEntity(bookRequestDto);
+        Author author = authorService.toEntity(authorRequestDto);
+
+        final Author savedAuthor = authorRepository.save(author);
+
+        book.getAuthors().add(savedAuthor);
+
+        final Book savedBook = bookRepository.save(book);
+
+        return toDto(savedBook);
+
+    }
+    //--------------------------------------------------------------
+    //------------------- Update Book ------------------------------
+    //--------------------------------------------------------------
+
+    //--------------------------------------------------------------
+    //------------------- Attach Author With Book ------------------
+    //--------------------------------------------------------------
+    public BookDto attachAuthor(int bookId, int authorId) {
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new EntityNotFoundException("Book not found  with id " + bookId));
+
+        Author author = authorRepository.findById(authorId)
+                .orElseThrow(() -> new EntityNotFoundException("Author not found  with id " + authorId));
+
+        book.getAuthors().add(author);
         final Book saveBook = bookRepository.save(book);
         return toDto(saveBook);
 
-
     }
 
-    public BookDto createBookWithNewAuthor(BookWithNewAuthorDto bookDto) {
-        Author author=new Author();
-        author.setFirstName(bookDto.getAuthor().getFirstName());
-        author.setLastName(bookDto.getAuthor().getLastName());
-        author.setEmail(bookDto.getAuthor().getEmail());
-        author.setNationality(bookDto.getAuthor().getNationality());
-        author.setId(bookDto.getAuthor().getId());
-
-        authorRepository.save(author);
-
-        Book book=new Book();
-        book.setTitle(bookDto.getBook().getTitle());
-        book.setPrice(bookDto.getBook().getPrice());
-        book.setStock(bookDto.getBook().getStock());
-        book.setGenre(bookDto.getBook().getGenre());
-        book.getAuthors().add(author);
-        final Book saveBook = bookRepository.save(book);
-        final BookDto result = toDto(saveBook);
-
-        return result;
-
-    }
-
-    public BookDto attachAuthor(int bookId,int authorId){
-        Book book=bookRepository.findById(bookId)
-                .orElseThrow(()->new RuntimeException("Book not found"));
-
-        Author author=authorRepository.findById(authorId)
-                .orElseThrow(()->new RuntimeException("Author not found"));
-
-        book.getAuthors().add(author);
-        final Book saveBook = bookRepository.save(book);
-        return toDto(saveBook);
-
-    }
-
-
-    public void deleteOneById(int id){
+    //--------------------------------------------------------------
+    //------------------- Delete Book ------------------------------
+    //--------------------------------------------------------------
+    public void delete(int id) {
         bookRepository.deleteById(id);
 
 
     }
-    private BookDto toDto(Book book){
-
-        BookDto result=new BookDto();
-        result.setId(book.getId());
-        result.setTitle(book.getTitle());
-        result.setGenre(book.getGenre());
-        result.setPrice(book.getPrice());
-        result.setStock(book.getStock());
-//        final List<AuthorDto> list = book.getAuthors().stream()
-//                .map(author -> {
-//                    AuthorDto authorDto = new AuthorDto();
-//                    authorDto.setId(author.getId());
-//                    authorDto.setFirstName(author.getFirstName());
-//                    authorDto.setLastName(author.getLastName());
-//                    return authorDto;
-//                }).toList();
-        List<AuthorDto> authorDtos=new ArrayList<>();
-        if (book.getAuthors()!=null){
-            for(Author author:book.getAuthors()){
-
-                AuthorDto authorDto=new AuthorDto();
-                authorDto.setId(author.getId());
-                authorDto.setFirstName(author.getFirstName());
-                authorDto.setLastName(author.getLastName());
-                authorDto.setEmail(author.getEmail());
-                authorDto.setNationality(author.getNationality());
-                authorDtos.add(authorDto);
-            }
-        }
-        result.setAuthor(authorDtos);
-        return result;
-
-
-    }
-
 
     //--------------------------------------------------------------
     //------------------- Validate BookRequestDto ------------------
     //--------------------------------------------------------------
-    private void validateBookRequestDto(BookRequestDto bookRequestDto){
-        if(bookRequestDto.getTitle()==null){
+    private void validateBookRequestDto(BookRequestDto bookRequestDto) {
+        if (bookRequestDto.getTitle() == null) {
             throw new ValidationException("title");
         }
-        if(bookRequestDto.getGenre()==null){
+        if (bookRequestDto.getGenre() == null) {
             throw new ValidationException("genre");
         }
-        if (bookRequestDto.getPrice()==0){
+        if (bookRequestDto.getPrice() == 0) {
             throw new ValidationException("price");
         }
-        if (bookRequestDto.getPrice()<0){
-            throw new ValidationException("stock","price should be greater than 0");
+        if (bookRequestDto.getPrice() < 0) {
+            throw new ValidationException("stock", "price should be greater than 0");
         }
 //        if (bookRequestDto.getStock()==0){
 //            throw new ValidationException("stock");
 //        }
 
-        if (bookRequestDto.getStock()<0){
-            throw new ValidationException("stock","stock should be greater than 0");
+        if (bookRequestDto.getStock() < 0) {
+            throw new ValidationException("stock", "stock should be greater than 0");
         }
     }
 
+
+    //--------------------------------------------------------------
+    //----------------- Convert Book to BookDto --------------------
+    //--------------------------------------------------------------
+    private List<BookDto> toDto(List<Book> books) {
+        List<BookDto> result = books.stream().map(book -> toDto(book)).toList();
+
+        return result;
+    }
+
+    private BookDto toDto(Book book) {
+
+        if (book == null) {
+            return null;
+        }
+
+        BookDto result = new BookDto();
+        result.setId(book.getId());
+        result.setTitle(book.getTitle());
+        result.setGenre(book.getGenre());
+        result.setPrice(book.getPrice());
+        result.setStock(book.getStock());
+
+        final List<AuthorRequestDto> authorRequestDtos = book.getAuthors().stream().map(author -> {
+            AuthorRequestDto authorRequestDto = new AuthorRequestDto();
+            authorRequestDto.setFirstName(author.getFirstName());
+            authorRequestDto.setLastName(author.getLastName());
+            authorRequestDto.setEmail(author.getEmail());
+            authorRequestDto.setNationality(author.getNationality());
+
+            return authorRequestDto;
+
+        }).toList();
+
+
+        result.setAuthor(authorRequestDtos);
+
+        return result;
+    }
+
+
+    //--------------------------------------------------------------
+    // ------------ convert BookDto to Book ------------------------
+    //--------------------------------------------------------------
+    private Book toEntity(BookRequestDto bookRequestDto) {
+        if (bookRequestDto == null) {
+            return null;
+        }
+        Book book = new Book();
+        book.setTitle(bookRequestDto.getTitle());
+        book.setGenre(bookRequestDto.getGenre());
+        book.setPrice(bookRequestDto.getPrice());
+        book.setStock(bookRequestDto.getStock());
+
+        return book;
+
+    }
 
 
 
