@@ -2,7 +2,7 @@ package com.application.bookstore.exception;
 
 public class EmailAlreadyExistsException extends RuntimeException {
 
-    public EmailAlreadyExistsException(String email) {
-        super("Email already exists: " + email);
+    public EmailAlreadyExistsException(String entity, String email) {
+        super(entity + " already exists with email: " + email);
     }
 }

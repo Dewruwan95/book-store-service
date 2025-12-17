@@ -75,15 +75,27 @@ public class BookService {
         authorService.validateAuthorRequestDto(authorRequestDto);
 
         Book book = toEntity(bookRequestDto);
-        Author author = authorService.toEntity(authorRequestDto);
 
-        final Author savedAuthor = authorRepository.save(author);
+        // Check if author with this email already exists
+        Author existingAuthor = authorRepository.findByEmail(authorRequestDto.getEmail());
 
-        book.getAuthors().add(savedAuthor);
 
-        final Book savedBook = bookRepository.save(book);
+        if (existingAuthor != null) {
+            // If author already exists, attach the existing author to the book
+            book.getAuthors().add(existingAuthor);
 
-        return toDto(savedBook);
+            final Book savedBook = bookRepository.save(book);
+            return toDto(savedBook);
+        } else {
+            // Create new author and attach to book
+            Author author = authorService.toEntity(authorRequestDto);
+
+            final Author savedAuthor = authorRepository.save(author);
+            book.getAuthors().add(savedAuthor);
+
+            final Book savedBook = bookRepository.save(book);
+            return toDto(savedBook);
+        }
 
     }
     //--------------------------------------------------------------
@@ -197,8 +209,6 @@ public class BookService {
         return book;
 
     }
-
-
 
 
 }

@@ -2,6 +2,7 @@ package com.application.bookstore.service;
 
 import com.application.bookstore.dto.CustomerDto;
 import com.application.bookstore.dto.CustomerRequestDto;
+import com.application.bookstore.exception.EmailAlreadyExistsException;
 import com.application.bookstore.exception.ValidationException;
 import com.application.bookstore.model.Customer;
 import com.application.bookstore.repository.CustomerRepository;
@@ -98,6 +99,11 @@ public class CustomerService {
 
         if (!customerRequestDto.getEmail().matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
             throw new ValidationException("email", "Invalid email format");
+        }
+
+        // Check if email already exists in database
+        if (customerRepository.findByEmail(customerRequestDto.getEmail()) != null) {
+            throw new EmailAlreadyExistsException("customer",customerRequestDto.getEmail());
         }
 
         if (customerRequestDto.getPhoneNumber() == null) {

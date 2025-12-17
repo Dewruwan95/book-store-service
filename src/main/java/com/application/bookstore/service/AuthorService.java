@@ -1,6 +1,7 @@
 package com.application.bookstore.service;
 
 import com.application.bookstore.dto.*;
+import com.application.bookstore.exception.EmailAlreadyExistsException;
 import com.application.bookstore.exception.ValidationException;
 import com.application.bookstore.model.Author;
 import com.application.bookstore.model.Book;
@@ -47,6 +48,7 @@ public class AuthorService {
     public AuthorDto create(AuthorRequestDto authorRequestDto) {
 
         validateAuthorRequestDto(authorRequestDto);
+        validateEmailUniqueness(authorRequestDto.getEmail());
 
         Author author = toEntity(authorRequestDto);
         final Author savedAuthor = authorRepository.save(author);
@@ -61,6 +63,7 @@ public class AuthorService {
         AuthorRequestDto authorRequestDto = authorWithBookRequestDto.getAuthor();
 
         validateAuthorRequestDto(authorRequestDto);
+        validateEmailUniqueness(authorRequestDto.getEmail());
 
         Author author = toEntity(authorRequestDto);
 
@@ -133,9 +136,20 @@ public class AuthorService {
             throw new ValidationException("email", "Invalid email format");
         }
 
-//        if (authorRequestDto.getNationality() == null) {
-//            throw new ValidationException("nationality");
-//        }
+        if (authorRequestDto.getNationality() == null) {
+            throw new ValidationException("nationality");
+        }
+
+    }
+
+    //--------------------------------------------------------------
+    //------------------- Check Email Uniqueness -------------------
+    //--------------------------------------------------------------
+    private void validateEmailUniqueness(String email) {
+        if (authorRepository.findByEmail(email) != null) {
+                throw new EmailAlreadyExistsException("author", email);
+        }
+
     }
 
     //--------------------------------------------------------------
@@ -159,15 +173,14 @@ public class AuthorService {
         result.setEmail(author.getEmail());
         result.setNationality(author.getNationality());
 
-        final List<BookRequestDto> bookRequestDtos = author.getBooks().stream()
-                .map(book -> {
-                    BookRequestDto bookRequestDto = new BookRequestDto();
-                    bookRequestDto.setTitle(book.getTitle());
-                    bookRequestDto.setPrice(book.getPrice());
-                    bookRequestDto.setGenre(book.getGenre());
-                    bookRequestDto.setStock(book.getStock());
-                    return bookRequestDto;
-                }).toList();
+        final List<BookRequestDto> bookRequestDtos = author.getBooks().stream().map(book -> {
+            BookRequestDto bookRequestDto = new BookRequestDto();
+            bookRequestDto.setTitle(book.getTitle());
+            bookRequestDto.setPrice(book.getPrice());
+            bookRequestDto.setGenre(book.getGenre());
+            bookRequestDto.setStock(book.getStock());
+            return bookRequestDto;
+        }).toList();
         result.setBookIds(bookRequestDtos);
 
         return result;
