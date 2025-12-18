@@ -10,7 +10,6 @@ public class CustomerRequestDto {
     private String phoneNumber;
     private String address;
 
-    public CustomerRequestDto(){}
 
     public String getFirstName() {
         return firstName;
@@ -51,5 +50,4 @@ public class CustomerRequestDto {
     public void setAddress(String address) {
         this.address = address;
     }
-
 }

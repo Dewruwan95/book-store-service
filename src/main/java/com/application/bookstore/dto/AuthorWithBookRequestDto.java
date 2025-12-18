@@ -6,6 +6,7 @@ public class AuthorWithBookRequestDto {
     private AuthorRequestDto author;
     private List<Integer> bookIds;
 
+
     public AuthorRequestDto getAuthor() {
         return author;
     }
@@ -21,5 +22,4 @@ public class AuthorWithBookRequestDto {
     public void setBookIds(List<Integer> bookIds) {
         this.bookIds = bookIds;
     }
-
 }

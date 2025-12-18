@@ -18,7 +18,6 @@ public class Customer {
     @Column(name = "last_name",length = 20,nullable = false)
     private String lastName;
 
-
     @Column(length = 30,nullable = false)
     private String email;
 
@@ -30,6 +29,7 @@ public class Customer {
 
     @OneToMany(mappedBy = "customer",cascade = CascadeType.ALL)
     private List<PurchasedBook> purchasedBooks;
+
 
     public int getId() {
         return id;

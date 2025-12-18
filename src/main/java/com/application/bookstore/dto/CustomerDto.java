@@ -1,7 +1,6 @@
 package com.application.bookstore.dto;
 
 
-import java.util.List;
 
 public class CustomerDto {
 
@@ -13,7 +12,6 @@ public class CustomerDto {
     private String phoneNumber;
     private String address;
 
-    public CustomerDto(){}
 
     public int getId() {
         return id;
@@ -70,5 +68,4 @@ public class CustomerDto {
     public void setAddress(String address) {
         this.address = address;
     }
-
 }

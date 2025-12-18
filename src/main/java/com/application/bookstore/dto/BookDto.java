@@ -10,24 +10,7 @@ public class BookDto {
     private  double price;
     private String genre;
     private int stock;
-
     private List<AuthorRequestDto> author;
-
-    public List<AuthorRequestDto> getAuthor() {
-        return author;
-    }
-
-    public void setAuthor(List<AuthorRequestDto> author) {
-        this.author = author;
-    }
-
-    public int getStock() {
-        return stock;
-    }
-
-    public void setStock(int stock) {
-        this.stock = stock;
-    }
 
 
     public int getId() {
@@ -60,5 +43,21 @@ public class BookDto {
 
     public void setGenre(String genre) {
         this.genre = genre;
+    }
+
+    public int getStock() {
+        return stock;
+    }
+
+    public void setStock(int stock) {
+        this.stock = stock;
+    }
+
+    public List<AuthorRequestDto> getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(List<AuthorRequestDto> author) {
+        this.author = author;
     }
 }

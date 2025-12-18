@@ -10,29 +10,6 @@ public class AuthorDto {
     private String nationality;
     private List<BookRequestDto> bookIds;
 
-    public List<BookRequestDto> getBookIds() {
-        return bookIds;
-    }
-
-    public void setBookIds(List<BookRequestDto> bookIds) {
-        this.bookIds = bookIds;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getNationality() {
-        return nationality;
-    }
-
-    public void setNationality(String nationality) {
-        this.nationality = nationality;
-    }
 
     public int getId() {
         return id;
@@ -56,5 +33,29 @@ public class AuthorDto {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getNationality() {
+        return nationality;
+    }
+
+    public void setNationality(String nationality) {
+        this.nationality = nationality;
+    }
+
+    public List<BookRequestDto> getBookIds() {
+        return bookIds;
+    }
+
+    public void setBookIds(List<BookRequestDto> bookIds) {
+        this.bookIds = bookIds;
     }
 }

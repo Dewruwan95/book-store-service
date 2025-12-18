@@ -20,7 +20,6 @@ public class Author {
     @Column(name = "last_name",length = 20,nullable = false)
     private String lastName;
 
-
     @Column(length = 20,nullable = false)
     private String nationality;
 

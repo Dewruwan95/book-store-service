@@ -1,6 +1,5 @@
 package com.application.bookstore.dto;
 
-import com.application.bookstore.model.Customer;
 
 import java.time.LocalDate;
 
@@ -10,14 +9,6 @@ public class PurchasedBookDto {
     private int customerId;
     private int bookId;
 
-    public int getPurchaseId() {
-        return purchaseId;
-    }
-
-    public void setPurchaseId(int purchaseId) {
-        this.purchaseId = purchaseId;
-    }
-
     public LocalDate getPurchaseDate() {
         return purchaseDate;
     }
@@ -26,7 +17,13 @@ public class PurchasedBookDto {
         this.purchaseDate = purchaseDate;
     }
 
+    public int getPurchaseId() {
+        return purchaseId;
+    }
 
+    public void setPurchaseId(int purchaseId) {
+        this.purchaseId = purchaseId;
+    }
 
     public int getCustomerId() {
         return customerId;

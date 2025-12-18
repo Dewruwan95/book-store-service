@@ -6,6 +6,7 @@ public class BookWithNewAuthorDto {
 
     private AuthorRequestDto author;
 
+
     public BookRequestDto getBook() {
         return book;
     }

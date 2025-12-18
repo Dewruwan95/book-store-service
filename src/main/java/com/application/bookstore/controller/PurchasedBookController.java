@@ -1,6 +1,5 @@
 package com.application.bookstore.controller;
 
-import com.application.bookstore.dto.AuthorDto;
 import com.application.bookstore.dto.PurchasedBookDto;
 import com.application.bookstore.service.PurchasedBookService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;

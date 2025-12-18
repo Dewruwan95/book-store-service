@@ -1,7 +1,7 @@
 package com.application.bookstore.service;
 
 import com.application.bookstore.dto.*;
-import com.application.bookstore.exception.EmailAlreadyExistsException;
+import com.application.bookstore.exception.AttributeAlreadyExistsException;
 import com.application.bookstore.exception.ValidationException;
 import com.application.bookstore.model.Author;
 import com.application.bookstore.model.Book;
@@ -38,7 +38,7 @@ public class AuthorService {
     //--------------------------------------------------------------
     public AuthorDto getById(int id) {
 
-        return authorRepository.findById(id).map(author -> toDto(author)).orElseThrow(() -> new EntityNotFoundException("Author not found with id " + id));
+        return authorRepository.findById(id).map(this::toDto).orElseThrow(() -> new EntityNotFoundException("Author not found with id " + id));
     }
 
 
@@ -112,6 +112,9 @@ public class AuthorService {
     //------------------- Delete Author ----------------------------
     //--------------------------------------------------------------
     public void delete(int id) {
+        if (!authorRepository.existsById(id)) {
+            throw new EntityNotFoundException("Author not found with id " + id);
+        }
         authorRepository.deleteById(id);
     }
 
@@ -147,7 +150,7 @@ public class AuthorService {
     //--------------------------------------------------------------
     private void validateEmailUniqueness(String email) {
         if (authorRepository.findByEmail(email) != null) {
-                throw new EmailAlreadyExistsException("author", email);
+                throw new AttributeAlreadyExistsException("Author", "email", email);
         }
 
     }
@@ -156,9 +159,7 @@ public class AuthorService {
     //----------------- Convert Author to AuthorDto ----------------
     //--------------------------------------------------------------
     public List<AuthorDto> toDto(List<Author> authors) {
-        List<AuthorDto> result = authors.stream().map(author -> toDto(author)).toList();
-
-        return result;
+        return authors.stream().map(this::toDto).toList();
     }
 
     private AuthorDto toDto(Author author) {

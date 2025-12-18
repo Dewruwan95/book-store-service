@@ -12,17 +12,16 @@ public class PurchasedBook {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-
     @ManyToOne
     @JoinColumn(name = "customer_id")
     private Customer customer;
-
 
     @ManyToOne//many purchased entities belong one book
     @JoinColumn(name = "book_id")
     private Book book;
 
     private LocalDate purchaseDate;
+
 
     public int getId() {
         return id;

@@ -7,13 +7,6 @@ public class BookRequestDto {
     private String genre;
     private int stock;
 
-    public int getStock() {
-        return stock;
-    }
-
-    public void setStock(int stock) {
-        this.stock = stock;
-    }
 
     public String getTitle() {
         return title;
@@ -39,4 +32,11 @@ public class BookRequestDto {
         this.genre = genre;
     }
 
+    public int getStock() {
+        return stock;
+    }
+
+    public void setStock(int stock) {
+        this.stock = stock;
+    }
 }

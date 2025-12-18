@@ -1,13 +1,11 @@
 package com.application.bookstore.dto;
 
-import java.util.List;
 
 public class AuthorRequestDto {
     private String firstName;
     private String  lastName;
     private String email;
     private String nationality;
-
 
 
     public String getFirstName() {
@@ -41,6 +39,4 @@ public class AuthorRequestDto {
     public void setNationality(String nationality) {
         this.nationality = nationality;
     }
-
-
 }

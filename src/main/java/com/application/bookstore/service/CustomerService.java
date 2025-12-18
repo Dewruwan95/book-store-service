@@ -2,7 +2,7 @@ package com.application.bookstore.service;
 
 import com.application.bookstore.dto.CustomerDto;
 import com.application.bookstore.dto.CustomerRequestDto;
-import com.application.bookstore.exception.EmailAlreadyExistsException;
+import com.application.bookstore.exception.AttributeAlreadyExistsException;
 import com.application.bookstore.exception.ValidationException;
 import com.application.bookstore.model.Customer;
 import com.application.bookstore.repository.CustomerRepository;
@@ -31,7 +31,7 @@ public class CustomerService {
     //------------------- Get Single Customer By Id ----------------
     //--------------------------------------------------------------
     public CustomerDto getById(int id) {
-        return customerRepository.findById(id).map(customer -> toDto(customer)).orElseThrow(() -> new EntityNotFoundException("Customer not found with id " + id));
+        return customerRepository.findById(id).map(this::toDto).orElseThrow(() -> new EntityNotFoundException("Customer not found with id " + id));
     }
 
     //--------------------------------------------------------------
@@ -77,6 +77,9 @@ public class CustomerService {
     //------------------- Delete Customer --------------------------
     //--------------------------------------------------------------
     public void delete(int id) {
+        if (!customerRepository.existsById(id)) {
+            throw new EntityNotFoundException("Customer not found with id " + id);
+        }
         customerRepository.deleteById(id);
     }
 
@@ -103,7 +106,7 @@ public class CustomerService {
 
         // Check if email already exists in database
         if (customerRepository.findByEmail(customerRequestDto.getEmail()) != null) {
-            throw new EmailAlreadyExistsException("customer",customerRequestDto.getEmail());
+            throw new AttributeAlreadyExistsException("Customer", "email", customerRequestDto.getEmail());
         }
 
         if (customerRequestDto.getPhoneNumber() == null) {
@@ -121,9 +124,8 @@ public class CustomerService {
     //----------------- Convert Customer to CustomerDto ------------
     //--------------------------------------------------------------
     public List<CustomerDto> toDto(List<Customer> customers) {
-        List<CustomerDto> result = customers.stream().map(customer -> toDto(customer)).toList();
 
-        return result;
+        return customers.stream().map(this::toDto).toList();
     }
 
 

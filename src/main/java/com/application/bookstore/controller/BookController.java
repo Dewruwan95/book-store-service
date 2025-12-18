@@ -17,7 +17,7 @@ import java.util.List;
 @SecurityRequirement(name = "basicAuth")
 public class BookController {
 
-    private BookService bookService;
+    private final BookService bookService;
 
     public BookController(BookService bookService) {
         this.bookService = bookService;

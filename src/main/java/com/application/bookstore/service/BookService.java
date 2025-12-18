@@ -7,26 +7,21 @@ import com.application.bookstore.model.Book;
 import com.application.bookstore.repository.AuthorRepository;
 import com.application.bookstore.repository.BookRepository;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class BookService {
 
-    private BookRepository bookRepository;
+    private final BookRepository bookRepository;
+    private final AuthorRepository authorRepository;
+    private final AuthorService authorService;
 
-    private AuthorRepository authorRepository;
-
-    @Autowired
-    private AuthorService authorService;
-
-    public BookService(BookRepository bookRepository, AuthorRepository authorRepository) {
+    public BookService(BookRepository bookRepository, AuthorRepository authorRepository, AuthorService authorService) {
         this.bookRepository = bookRepository;
         this.authorRepository = authorRepository;
+        this.authorService = authorService;
     }
 
 
@@ -44,7 +39,7 @@ public class BookService {
     public BookDto getById(int id) {
 
 
-        return bookRepository.findById(id).map(book -> toDto(book)).orElseThrow(() -> new EntityNotFoundException("Book not found with id " + id));
+        return bookRepository.findById(id).map(this::toDto).orElseThrow(() -> new EntityNotFoundException("Book not found with id " + id));
 
 
     }
@@ -122,6 +117,9 @@ public class BookService {
     //------------------- Delete Book ------------------------------
     //--------------------------------------------------------------
     public void delete(int id) {
+        if (!bookRepository.existsById(id)) {
+            throw new EntityNotFoundException("Book not found with id " + id);
+        }
         bookRepository.deleteById(id);
 
 
@@ -143,9 +141,6 @@ public class BookService {
         if (bookRequestDto.getPrice() < 0) {
             throw new ValidationException("stock", "price should be greater than 0");
         }
-//        if (bookRequestDto.getStock()==0){
-//            throw new ValidationException("stock");
-//        }
 
         if (bookRequestDto.getStock() < 0) {
             throw new ValidationException("stock", "stock should be greater than 0");
@@ -157,9 +152,7 @@ public class BookService {
     //----------------- Convert Book to BookDto --------------------
     //--------------------------------------------------------------
     private List<BookDto> toDto(List<Book> books) {
-        List<BookDto> result = books.stream().map(book -> toDto(book)).toList();
-
-        return result;
+        return books.stream().map(this::toDto).toList();
     }
 
     private BookDto toDto(Book book) {

@@ -24,16 +24,13 @@ public class Book {
     @Column( nullable = false)
     private int stock;
 
-
     @ManyToMany
     @JoinTable(
             name = "book_author",
             joinColumns = @JoinColumn(name = "book_id"),
             inverseJoinColumns = @JoinColumn(name = "author_id")
-
     )
     private List<Author> authors=new ArrayList<>();
-
 
     public int getId() {
         return id;
@@ -42,7 +39,6 @@ public class Book {
     public void setId(int id) {
         this.id = id;
     }
-
 
     public String getTitle() {
         return title;
@@ -60,14 +56,6 @@ public class Book {
         this.price = price;
     }
 
-    public List<Author> getAuthors() {
-        return authors;
-    }
-
-    public void setAuthors(List<Author> authors) {
-        this.authors = authors;
-    }
-
     public String getGenre() {
         return genre;
     }
@@ -82,6 +70,14 @@ public class Book {
 
     public void setStock(int stock) {
         this.stock = stock;
+    }
+
+    public List<Author> getAuthors() {
+        return authors;
+    }
+
+    public void setAuthors(List<Author> authors) {
+        this.authors = authors;
     }
 
     @Override

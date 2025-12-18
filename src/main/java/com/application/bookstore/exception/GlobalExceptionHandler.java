@@ -11,15 +11,25 @@ import java.time.Instant;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(EntityNotFoundException.class)
-    public ProblemDetail handleEntityNotFoundException(EntityNotFoundException e){
+    // Define constants for property keys
+    private static final String PROPERTY_TIMESTAMP = "timestamp";
+    private static final String PROPERTY_REASON = "reason";
+    private static final String PROPERTY_SEVERITY = "severity";
 
+    // define constants for titles
+    private static final String TITLE_ENTITY_NOT_FOUND = "Entity not found";
+    private static final String TITLE_VALIDATION_ERROR = "Validation Error";
+    private static final String TITLE_EMAIL_EXISTS = "Attribute Already Exists";
+    private static final String SEVERITY_ERROR = "ERROR";
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ProblemDetail handleEntityNotFoundException(EntityNotFoundException e) {
         ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
 
-        problemDetail.setTitle("Entity not found");
-        problemDetail.setProperty("timestamp", Instant.now().toString());
-        problemDetail.setProperty("reason",e.getMessage());
-        problemDetail.setProperty("severity","ERROR");
+        problemDetail.setTitle(TITLE_ENTITY_NOT_FOUND);
+        problemDetail.setProperty(PROPERTY_TIMESTAMP, Instant.now().toString());
+        problemDetail.setProperty(PROPERTY_REASON, e.getMessage());
+        problemDetail.setProperty(PROPERTY_SEVERITY, SEVERITY_ERROR);
 
         return problemDetail;
     }
@@ -28,24 +38,22 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleValidationException(ValidationException e) {
         ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
 
-        problemDetail.setTitle("Validation Error");
-        problemDetail.setProperty("timestamp", Instant.now().toString());
-        problemDetail.setProperty("reason", e.getMessage());
-        problemDetail.setProperty("severity", "ERROR");
+        problemDetail.setTitle(TITLE_VALIDATION_ERROR);
+        problemDetail.setProperty(PROPERTY_TIMESTAMP, Instant.now().toString());
+        problemDetail.setProperty(PROPERTY_REASON, e.getMessage());
+        problemDetail.setProperty(PROPERTY_SEVERITY, SEVERITY_ERROR);
 
         return problemDetail;
     }
 
-
-    @ExceptionHandler(EmailAlreadyExistsException.class)
-    public ProblemDetail handleEmailAlreadyExistsException(EmailAlreadyExistsException e) {
-
+    @ExceptionHandler(AttributeAlreadyExistsException.class)
+    public ProblemDetail handleEmailAlreadyExistsException(AttributeAlreadyExistsException e) {
         ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.CONFLICT);
 
-        problemDetail.setTitle("Email Already Exists");
-        problemDetail.setProperty("timestamp", Instant.now().toString());
-        problemDetail.setProperty("reason", e.getMessage());
-        problemDetail.setProperty("severity", "ERROR");
+        problemDetail.setTitle(TITLE_EMAIL_EXISTS);
+        problemDetail.setProperty(PROPERTY_TIMESTAMP, Instant.now().toString());
+        problemDetail.setProperty(PROPERTY_REASON, e.getMessage());
+        problemDetail.setProperty(PROPERTY_SEVERITY, SEVERITY_ERROR);
 
         return problemDetail;
     }

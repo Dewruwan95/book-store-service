@@ -18,11 +18,12 @@ class BookServiceTest {
     private BookRepository bookRepository;
     private AuthorRepository authorRepository;
     private BookService bookService;
+    private AuthorService authorService;
 
     @BeforeEach
     void beforeEachTest() {
         bookRepository = Mockito.mock(BookRepository.class);
-        bookService = new BookService(bookRepository, authorRepository);
+        bookService = new BookService(bookRepository, authorRepository,authorService);
     }
 
     @Test

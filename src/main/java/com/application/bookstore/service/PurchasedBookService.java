@@ -7,12 +7,12 @@ import com.application.bookstore.model.PurchasedBook;
 import com.application.bookstore.repository.BookRepository;
 import com.application.bookstore.repository.CustomerRepository;
 import com.application.bookstore.repository.PurchasedBookRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class PurchasedBookService {
@@ -59,11 +59,14 @@ public class PurchasedBookService {
         return purchaseRepo.findAll()
                 .stream()
                 .map(this::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
 
     public void deletePurchase(int id) {
+        if (!purchaseRepo.existsById(id)) {
+            throw new EntityNotFoundException("Purchase not found with id " + id);
+        }
         purchaseRepo.deleteById(id);
     }
 

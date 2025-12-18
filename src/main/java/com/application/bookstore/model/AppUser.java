@@ -10,12 +10,16 @@ public class AppUser {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
+    @Column(length = 20, unique = true, nullable = false)
     private String username;
+
+    @Column(length = 20, nullable = false)
     private String password;
+
+    @Column(length = 40, nullable = false)
     private String roles;
 
-    public AppUser() {
-    }
+    public AppUser() {}
 
     public AppUser(String username, String password, String roles) {
         this.username = username;
@@ -31,11 +35,11 @@ public class AppUser {
         this.id = id;
     }
 
-    public String getUserName() {
+    public String getUsername() {
         return username;
     }
 
-    public void setUserName(String username) {
+    public void setUsername(String username) {
         this.username = username;
     }
 
@@ -59,7 +63,7 @@ public class AppUser {
     public String toString() {
         return "AppUser{" +
                 "id=" + id +
-                ", userName='" + username + '\'' +
+                ", username='" + username + '\'' +
                 ", password='" + password + '\'' +
                 ", roles='" + roles + '\'' +
                 '}';
