@@ -16,9 +16,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import java.time.LocalDate;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-
 
 @AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(PurchasedBookController.class)
@@ -45,13 +42,11 @@ class PurchasedBookControllerTest {
 
     @Test
     void should_create_new_purchased_book() throws Exception {
-        // For purchased book, we typically pass customerId and bookId in request
-        // Adjust this based on your actual PurchasedBookRequestDto if you have one
 
         Mockito.when(purchasedBookService.purchaseBook(Mockito.any()))
                 .thenReturn(dummyPurchasedBookDto().getFirst());
 
-        // Since you didn't provide PurchasedBookRequestDto, using simple JSON
+        // Provide PurchasedBookRequestDto, using simple JSON
         String requestJson = "{\"customerId\": 1, \"bookId\": 1}";
 
         mockMvc.perform(MockMvcRequestBuilders.post("/api/book-store-service/v1/purchase")

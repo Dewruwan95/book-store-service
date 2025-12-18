@@ -1,6 +1,6 @@
 package com.application.bookstore.repository;
 
-import com.application.bookstore.model.Book;
+import com.application.bookstore.model.AppUser;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,45 +11,45 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import javax.sql.DataSource;
 import java.util.List;
 
-
 @DataJpaTest
 @AutoConfigureMockMvc(addFilters = false)
-class BookRepositoryTest {
+class AppUserRepositoryTest {
 
     @Autowired
-    private BookRepository bookRepository;
+    private AppUserRepository appUserRepository;
 
     @Autowired
     private DataSource dataSource;
 
     @BeforeEach
     void setUp() {
-        Book book1 = new Book();
-        book1.setTitle("1984");
-        book1.setPrice(12.99);
-        book1.setGenre("Dystopian");
-        book1.setStock(50);
 
-        bookRepository.save(book1);
+        AppUser admin = new AppUser();
+        admin.setUsername("admin_user");
+        admin.setPassword("admin123");
+        admin.setRoles("ADMIN");
 
-        Book book2 = new Book();
-        book2.setTitle("Harry Potter");
-        book2.setPrice(15.99);
-        book2.setGenre("Fantasy");
-        book2.setStock(100);
+        appUserRepository.save(admin);
 
-        bookRepository.save(book2);
+        // Create second user
+        AppUser user = new AppUser();
+        user.setUsername("customer_user");
+        user.setPassword("customer123");
+        user.setRoles("USER");
+
+        appUserRepository.save(user);
     }
 
     @Test
     void context_loads() {
-        Assertions.assertNotNull(bookRepository);
+        Assertions.assertNotNull(appUserRepository);
         Assertions.assertNotNull(dataSource);
     }
 
     @Test
-    void should_return_all_books() {
-        List<Book> result = bookRepository.findAll();
+    void should_return_all_users() {
+        List<AppUser> result = appUserRepository.findAll();
+
         Assertions.assertNotNull(result);
         Assertions.assertFalse(result.isEmpty());
         Assertions.assertEquals(2, result.size());

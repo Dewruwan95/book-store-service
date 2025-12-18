@@ -12,7 +12,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
 @AutoConfigureMockMvc(addFilters = false)
 class BookServiceTest {
     private BookRepository bookRepository;

@@ -19,8 +19,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 @AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(AuthorController.class)
 class AuthorControllerTest {
