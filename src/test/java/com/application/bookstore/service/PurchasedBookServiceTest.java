@@ -43,7 +43,7 @@ class PurchasedBookServiceTest {
     void should_return_all_purchased_books() {
         Mockito.when(purchasedBookRepository.findAll()).thenReturn(dummyPurchasedBooks());
 
-        List<PurchasedBookDto> result = purchasedBookService.getAllPurchases();
+        List<PurchasedBookDto> result = purchasedBookService.getAll();
 
         Assertions.assertNotNull(result);
         Assertions.assertFalse(result.isEmpty());
@@ -86,7 +86,7 @@ class PurchasedBookServiceTest {
         Mockito.when(purchasedBookRepository.save(Mockito.any(PurchasedBook.class)))
                 .thenReturn(savedPurchasedBook);
 
-        PurchasedBookDto result = purchasedBookService.purchaseBook(request);
+        PurchasedBookDto result = purchasedBookService.create(request);
 
         Assertions.assertNotNull(result);
         Assertions.assertEquals(1, result.getPurchaseId());

@@ -8,6 +8,8 @@ import com.application.bookstore.repository.BookRepository;
 import com.application.bookstore.repository.CustomerRepository;
 import com.application.bookstore.repository.PurchasedBookRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -16,66 +18,120 @@ import java.util.List;
 
 @Service
 public class PurchasedBookService {
-    private final PurchasedBookRepository purchaseRepo;
-    private final CustomerRepository customerRepo;
-    private final BookRepository bookRepo;
+    private static final Logger logger = LoggerFactory.getLogger(PurchasedBookService.class);
+
+    private final PurchasedBookRepository purchasedBookRepository;
+    private final CustomerRepository customerRepository;
+    private final BookRepository bookRepository;
 
     public PurchasedBookService(
-            PurchasedBookRepository purchaseRepo,
-            CustomerRepository customerRepo,
-            BookRepository bookRepo) {
+            PurchasedBookRepository purchasedBookRepository,
+            CustomerRepository customerRepository,
+            BookRepository bookRepository) {
 
-        this.purchaseRepo = purchaseRepo;
-        this.customerRepo = customerRepo;
-        this.bookRepo = bookRepo;
+        this.purchasedBookRepository = purchasedBookRepository;
+        this.customerRepository = customerRepository;
+        this.bookRepository = bookRepository;
     }
 
-
-    public PurchasedBookDto purchaseBook(PurchasedBookDto dto) {
-        Customer customer = customerRepo.findById(dto.getCustomerId())
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
-
-        Book book = bookRepo.findById(dto.getBookId())
-                .orElseThrow(() -> new RuntimeException("Book not found"));
-
-        PurchasedBook purchase =new PurchasedBook();
-        purchase.setCustomer(customer);
-        purchase.setBook(book);
-        purchase.setPurchaseDate(LocalDate.from(LocalDateTime.now()));
-
-
-        return toDto(purchaseRepo.save(purchase));
+    //--------------------------------------------------------------
+    //------------------- Get All Purchases ------------------------
+    //--------------------------------------------------------------
+    public List<PurchasedBookDto> getAll() {
+        logger.info("Fetching all purchases");
+        return toDto(purchasedBookRepository.findAll());
     }
 
-
-    public PurchasedBookDto getPurchaseById(int id) {
-        return purchaseRepo.findById(id)
-                .map(this::toDto)
-                .orElseThrow(() -> new RuntimeException("Purchase not found"));
+    //--------------------------------------------------------------
+    //------------------- Get Single Purchase By Id ----------------
+    //--------------------------------------------------------------
+    public PurchasedBookDto getById(int id) {
+        logger.info("Fetching purchase with ID: {}", id);
+        return purchasedBookRepository.findById(id).map(this::toDto).orElseThrow(() -> {
+            logger.warn("Purchase not found with ID: {}", id);
+            return new EntityNotFoundException("Purchase not found with id " + id);
+        });
     }
 
+    //--------------------------------------------------------------
+    //------------------- Create New Purchase ----------------------
+    //--------------------------------------------------------------
+    public PurchasedBookDto create(PurchasedBookDto purchasedBookDto) {
+        logger.info("Creating new purchase - Customer ID: {}, Book ID: {}",
+                purchasedBookDto.getCustomerId(), purchasedBookDto.getBookId());
 
-    public List<PurchasedBookDto> getAllPurchases() {
-        return purchaseRepo.findAll()
-                .stream()
-                .map(this::toDto)
-                .toList();
+        Customer customer = customerRepository.findById(purchasedBookDto.getCustomerId())
+                .orElseThrow(() -> {
+                    logger.warn("Cannot create purchase: Customer not found with ID: {}", purchasedBookDto.getCustomerId());
+                    return new EntityNotFoundException("Customer not found with id " + purchasedBookDto.getCustomerId());
+                });
+
+        Book book = bookRepository.findById(purchasedBookDto.getBookId())
+                .orElseThrow(() -> {
+                    logger.warn("Cannot create purchase: Book not found with ID: {}", purchasedBookDto.getBookId());
+                    return new EntityNotFoundException("Book not found with id " + purchasedBookDto.getBookId());
+                });
+
+        PurchasedBook purchasedBook = toEntity(purchasedBookDto, customer, book);
+        final PurchasedBook savedPurchasedBook = purchasedBookRepository.save(purchasedBook);
+
+        logger.info("Purchase created successfully with ID: {}, Customer: {} {}, Book: {}",
+                savedPurchasedBook.getId(),
+                customer.getFirstName(), customer.getLastName(),
+                book.getTitle());
+
+        return toDto(savedPurchasedBook);
     }
 
+    //--------------------------------------------------------------
+    //------------------- Delete Purchase --------------------------
+    //--------------------------------------------------------------
+    public void delete(int id) {
+        logger.info("Deleting purchase with ID: {}", id);
 
-    public void deletePurchase(int id) {
-        if (!purchaseRepo.existsById(id)) {
+        if (!purchasedBookRepository.existsById(id)) {
+            logger.warn("Attempted to delete non-existent purchase ID: {}", id);
             throw new EntityNotFoundException("Purchase not found with id " + id);
         }
-        purchaseRepo.deleteById(id);
+
+        purchasedBookRepository.deleteById(id);
+        logger.info("Purchase deleted successfully with ID: {}", id);
     }
 
-    private PurchasedBookDto toDto(PurchasedBook purchase) {
-        PurchasedBookDto dto = new PurchasedBookDto();
-        dto.setPurchaseId(purchase.getId());
-        dto.setPurchaseDate(purchase.getPurchaseDate());
-        dto.setCustomerId(purchase.getCustomer().getId());
-        dto.setBookId(purchase.getBook().getId());
-        return dto;
+    //--------------------------------------------------------------
+    //------------------- Convert PurchasedBook to PurchasedBookDto
+    //--------------------------------------------------------------
+    public List<PurchasedBookDto> toDto(List<PurchasedBook> purchasedBooks) {
+        return purchasedBooks.stream().map(this::toDto).toList();
+    }
+
+    private PurchasedBookDto toDto(PurchasedBook purchasedBook) {
+        if (purchasedBook == null) {
+            return null;
+        }
+
+        PurchasedBookDto result = new PurchasedBookDto();
+        result.setPurchaseId(purchasedBook.getId());
+        result.setPurchaseDate(purchasedBook.getPurchaseDate());
+        result.setCustomerId(purchasedBook.getCustomer().getId());
+        result.setBookId(purchasedBook.getBook().getId());
+
+        return result;
+    }
+
+    //--------------------------------------------------------------
+    // ------------ convert PurchasedBookDto to PurchasedBook ------
+    //--------------------------------------------------------------
+    private PurchasedBook toEntity(PurchasedBookDto purchasedBookDto, Customer customer, Book book) {
+        if (purchasedBookDto == null) {
+            return null;
+        }
+
+        PurchasedBook result = new PurchasedBook();
+        result.setCustomer(customer);
+        result.setBook(book);
+        result.setPurchaseDate(LocalDate.from(LocalDateTime.now()));
+
+        return result;
     }
 }

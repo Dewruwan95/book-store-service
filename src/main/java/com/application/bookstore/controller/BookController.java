@@ -1,8 +1,6 @@
 package com.application.bookstore.controller;
 
-import com.application.bookstore.dto.BookDto;
-import com.application.bookstore.dto.BookRequestDto;
-import com.application.bookstore.dto.BookWithNewAuthorDto;
+import com.application.bookstore.dto.*;
 import com.application.bookstore.service.BookService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.HttpStatus;
@@ -63,6 +61,14 @@ public class BookController {
         final BookDto response = bookService.createBookWithNewAuthor(book);
 
         return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
+
+    //------------------- Update Book With Id ------------------------
+    @PutMapping("/{id}")
+    public ResponseEntity<BookDto> update(@PathVariable int id, @RequestBody BookRequestDto bookRequestDto) {
+        BookDto response = bookService.update(id, bookRequestDto);
+        return ResponseEntity.ok(response);
     }
 
 

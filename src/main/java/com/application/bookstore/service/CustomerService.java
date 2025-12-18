@@ -7,12 +7,16 @@ import com.application.bookstore.exception.ValidationException;
 import com.application.bookstore.model.Customer;
 import com.application.bookstore.repository.CustomerRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 public class CustomerService {
+
+    private static final Logger logger = LoggerFactory.getLogger(CustomerService.class);
 
     private final CustomerRepository customerRepository;
 
@@ -24,6 +28,7 @@ public class CustomerService {
     //------------------- Get All Customers ------------------------
     //--------------------------------------------------------------
     public List<CustomerDto> getAll() {
+        logger.info("Fetching all customers");
         return toDto(customerRepository.findAll());
     }
 
@@ -31,7 +36,11 @@ public class CustomerService {
     //------------------- Get Single Customer By Id ----------------
     //--------------------------------------------------------------
     public CustomerDto getById(int id) {
-        return customerRepository.findById(id).map(this::toDto).orElseThrow(() -> new EntityNotFoundException("Customer not found with id " + id));
+        logger.info("Fetching customer with ID: {}", id);
+        return customerRepository.findById(id).map(this::toDto).orElseThrow(() -> {
+            logger.warn("Customer not found with ID: {}", id);
+            return new EntityNotFoundException("Customer not found with id " + id);
+        });
     }
 
     //--------------------------------------------------------------
@@ -39,10 +48,15 @@ public class CustomerService {
     //--------------------------------------------------------------
     public CustomerDto create(CustomerRequestDto customerRequestDto) {
 
+        logger.info("Creating new customer with email: {}", customerRequestDto.getEmail());
+
         validateCustomerRequestDto(customerRequestDto);
 
         Customer customer = toEntity(customerRequestDto);
         final Customer savedCustomer = customerRepository.save(customer);
+
+        logger.info("Customer created successfully with ID: {} and email: {}", savedCustomer.getId(), savedCustomer.getEmail());
+
         return toDto(savedCustomer);
     }
 
@@ -50,8 +64,13 @@ public class CustomerService {
     //------------------- Update Customer --------------------------
     //--------------------------------------------------------------
     public CustomerDto update(int id, CustomerRequestDto customerRequestDto) {
-        Customer existingCustomer = customerRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Customer not found with id " + id));
+
+        logger.info("Updating customer with ID: {}", id);
+
+        Customer existingCustomer = customerRepository.findById(id).orElseThrow(() -> {
+            logger.warn("Cannot update: Customer not found with ID: {}", id);
+            return new EntityNotFoundException("Customer not found with id " + id);
+        });
 
         if (customerRequestDto.getFirstName() != null) {
             existingCustomer.setFirstName(customerRequestDto.getFirstName());
@@ -70,6 +89,9 @@ public class CustomerService {
         }
 
         final Customer savedCustomer = customerRepository.save(existingCustomer);
+
+        logger.info("Customer updated successfully with ID: {}", savedCustomer.getId());
+
         return toDto(savedCustomer);
     }
 
@@ -77,10 +99,15 @@ public class CustomerService {
     //------------------- Delete Customer --------------------------
     //--------------------------------------------------------------
     public void delete(int id) {
+
+        logger.info("Deleting customer with ID: {}", id);
+
         if (!customerRepository.existsById(id)) {
+            logger.warn("Attempted to delete non-existent customer ID: {}", id);
             throw new EntityNotFoundException("Customer not found with id " + id);
         }
         customerRepository.deleteById(id);
+        logger.info("Customer deleted successfully with ID: {}", id);
     }
 
 

@@ -29,7 +29,7 @@ class PurchasedBookControllerTest {
 
     @Test
     void should_return_all_purchased_books() throws Exception {
-        Mockito.when(purchasedBookService.getAllPurchases()).thenReturn(dummyPurchasedBookDto());
+        Mockito.when(purchasedBookService.getAll()).thenReturn(dummyPurchasedBookDto());
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/book-store-service/v1/purchase"))
                 .andDo(MockMvcResultHandlers.print())
@@ -43,7 +43,7 @@ class PurchasedBookControllerTest {
     @Test
     void should_create_new_purchased_book() throws Exception {
 
-        Mockito.when(purchasedBookService.purchaseBook(Mockito.any()))
+        Mockito.when(purchasedBookService.create(Mockito.any()))
                 .thenReturn(dummyPurchasedBookDto().getFirst());
 
         // Provide PurchasedBookRequestDto, using simple JSON

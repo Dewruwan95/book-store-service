@@ -7,6 +7,8 @@ import com.application.bookstore.exception.ValidationException;
 import com.application.bookstore.model.AppUser;
 import com.application.bookstore.repository.AppUserRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -18,6 +20,8 @@ import java.util.List;
 
 @Service
 public class AppUserService implements UserDetailsService {
+
+    private static final Logger logger = LoggerFactory.getLogger(AppUserService.class);
 
     private final AppUserRepository appUserRepository;
     private final PasswordEncoder passwordEncoder;
@@ -31,6 +35,7 @@ public class AppUserService implements UserDetailsService {
     //------------------- Get All AppUsers -------------------------
     //--------------------------------------------------------------
     public List<AppUserDto> getAll() {
+        logger.info("Fetching all users");
         return toDto(appUserRepository.findAll());
     }
 
@@ -38,9 +43,13 @@ public class AppUserService implements UserDetailsService {
     //------------------- Get Single AppUser By Id -----------------
     //--------------------------------------------------------------
     public AppUserDto getById(int id) {
+        logger.info("Fetching user with ID: {}", id);
         return appUserRepository.findById(id)
                 .map(this::toDto)
-                .orElseThrow(() -> new EntityNotFoundException("User not found with id " + id));
+                .orElseThrow(() -> {
+                    logger.warn("User not found with ID: {}", id);
+                    return new EntityNotFoundException("User not found with id " + id);
+                });
     }
 
     //--------------------------------------------------------------
@@ -48,12 +57,15 @@ public class AppUserService implements UserDetailsService {
     //--------------------------------------------------------------
     public AppUserDto create(AppUserRequestDto appUserRequestDto) {
 
+        logger.info("Creating new user with username: {}", appUserRequestDto.getUsername());
+
         validateAppUserRequestDto(appUserRequestDto);
 
         AppUser user = toEntity(appUserRequestDto);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         final AppUser savedUser = appUserRepository.save(user);
+        logger.info("User created successfully with ID: {} and username: {}", savedUser.getId(), savedUser.getUsername());
         return toDto(savedUser);
     }
 
@@ -61,8 +73,12 @@ public class AppUserService implements UserDetailsService {
     //------------------- Update AppUser ---------------------------
     //--------------------------------------------------------------
     public AppUserDto update(int id, AppUserRequestDto appUserRequestDto) {
+        logger.info("Updating user with ID: {}", id);
         AppUser existingAppUser = appUserRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("AppUser not found with id " + id));
+                .orElseThrow(() -> {
+                    logger.warn("Cannot update: User not found with ID: {}", id);
+                    return new EntityNotFoundException("AppUser not found with id " + id);
+                });
 
         if (appUserRequestDto.getUsername() != null) {
             existingAppUser.setUsername(appUserRequestDto.getUsername());
@@ -75,6 +91,7 @@ public class AppUserService implements UserDetailsService {
         }
 
         final AppUser savedUser = appUserRepository.save(existingAppUser);
+        logger.info("User updated successfully with ID: {}", savedUser.getId());
         return toDto(savedUser);
     }
 
@@ -82,11 +99,36 @@ public class AppUserService implements UserDetailsService {
     //------------------- Delete User ------------------------------
     //--------------------------------------------------------------
     public void delete(int id) {
+        logger.info("Deleting user with ID: {}", id);
         if (!appUserRepository.existsById(id)) {
+            logger.warn("Attempted to delete non-existent user ID: {}", id);
             throw new EntityNotFoundException("AppUser not found with id " + id);
         }
         appUserRepository.deleteById(id);
+        logger.info("User deleted successfully with ID: {}", id);
     }
+
+
+
+    //-------------------------------------------------------------------
+    // ------------ Load AppUser By Username ----------------------------
+    //-------------------------------------------------------------------
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+
+        logger.debug("Loading user by username: {}", username);
+
+        final AppUser appUser = appUserRepository.findByUsername(username);
+        if (appUser == null) {
+            logger.warn("User not found for username: {}", username);
+            throw new UsernameNotFoundException("User not found: " + username);
+        }
+
+        logger.debug("User found for authentication: {} with roles: {}", username, appUser.getRoles());
+        return User.withUsername(appUser.getUsername()).password(appUser.getPassword()).roles(appUser.getRoles().split(",")).build();
+    }
+
+
 
     //--------------------------------------------------------------
     //------------------- Validate AppUserRequestDto ---------------
@@ -144,18 +186,5 @@ public class AppUserService implements UserDetailsService {
         return result;
     }
 
-    //-------------------------------------------------------------------
-    // ------------ Load AppUser By Username ----------------------------
-    //-------------------------------------------------------------------
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-
-        final AppUser appUser = appUserRepository.findByUsername(username);
-        if (appUser == null) {
-            throw new UsernameNotFoundException("User not found: " + username);
-        }
-
-        return User.withUsername(appUser.getUsername()).password(appUser.getPassword()).roles(appUser.getRoles().split(",")).build();
-    }
 
 }

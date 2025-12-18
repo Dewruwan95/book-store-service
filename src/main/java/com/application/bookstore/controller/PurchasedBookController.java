@@ -22,7 +22,7 @@ public class PurchasedBookController {
 
     @PostMapping
     public ResponseEntity<PurchasedBookDto> purchaseBook(@RequestBody PurchasedBookDto dto) {
-        PurchasedBookDto created = purchaseService.purchaseBook(dto);
+        PurchasedBookDto created = purchaseService.create(dto);
 
         // Return 201 CREATED with location header
         return ResponseEntity
@@ -32,17 +32,17 @@ public class PurchasedBookController {
 
     @GetMapping("/{id}")
     public ResponseEntity<PurchasedBookDto> getPurchase(@PathVariable int id) {
-        return ResponseEntity.ok(purchaseService.getPurchaseById(id));
+        return ResponseEntity.ok(purchaseService.getById(id));
     }
 
     @GetMapping
     public ResponseEntity<List<PurchasedBookDto>> getAllPurchases() {
-        return ResponseEntity.ok(purchaseService.getAllPurchases());
+        return ResponseEntity.ok(purchaseService.getAll());
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePurchase(@PathVariable int id) {
-        purchaseService.deletePurchase(id);
+        purchaseService.delete(id);
         return ResponseEntity.noContent().build();
     }
 }
