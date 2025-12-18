@@ -1,0 +1,17 @@
+com/application/bookstore/controller/AuthorControllerTest.class
+com/application/bookstore/service/AuthorServiceTest.class
+com/application/bookstore/repository/PurchasedBookRepositoryTest.class
+com/application/bookstore/controller/CustomerControllerTest.class
+com/application/bookstore/controller/BookControllerTest.class
+com/application/bookstore/repository/BookRepositoryTest.class
+com/application/bookstore/repository/CustomerRepositoryTest.class
+com/application/bookstore/service/CustomerServiceTest.class
+com/application/bookstore/repository/AuthorRepositoryTest.class
+com/application/bookstore/controller/CustomerControllerIntegrationTest.class
+com/application/bookstore/service/BookServiceTest.class
+com/application/bookstore/controller/PurchasedBookControllerTest.class
+com/application/bookstore/controller/AppUserControllerTest.class
+com/application/bookstore/service/PurchasedBookServiceTest.class
+com/application/bookstore/repository/AppUserRepositoryTest.class
+com/application/bookstore/BookstoreApplicationTests.class
+com/application/bookstore/service/AppUserServiceTest.class

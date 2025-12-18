@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AppUserController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">bookstore</a> &gt; <a href="index.source.html" class="el_package">com.application.bookstore.controller</a> &gt; <span class="el_source">AppUserController.java</span></div><h1>AppUserController.java</h1><pre class="source lang-java linenums">package com.application.bookstore.controller;
+
+import com.application.bookstore.dto.AppUserDto;
+import com.application.bookstore.dto.AppUserRequestDto;
+import com.application.bookstore.service.AppUserService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@SecurityRequirement(name = &quot;basicAuth&quot;)
+@RequestMapping(&quot;/api/book-store-service/v1/users&quot;)
+public class AppUserController {
+
+    private final AppUserService appUserService;
+
+<span class="fc" id="L20">    public AppUserController(AppUserService appUserService) {</span>
+<span class="fc" id="L21">        this.appUserService = appUserService;</span>
+<span class="fc" id="L22">    }</span>
+
+    //------------------- Get All Users ------------------------
+    @GetMapping
+    public ResponseEntity&lt;List&lt;AppUserDto&gt;&gt; getAll() {
+<span class="fc" id="L27">        List&lt;AppUserDto&gt; response = appUserService.getAll();</span>
+
+<span class="fc bfc" id="L29" title="All 2 branches covered.">        if (response.isEmpty()) {</span>
+<span class="fc" id="L30">            return ResponseEntity.noContent().build();</span>
+        } else {
+<span class="fc" id="L32">            return ResponseEntity.ok(response);</span>
+        }
+    }
+
+    //------------------- Get Single User By Id ------------------------
+    @GetMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;AppUserDto&gt; getOneById(@PathVariable int id) {
+<span class="fc" id="L39">        AppUserDto response = appUserService.getById(id);</span>
+<span class="fc" id="L40">        return ResponseEntity.ok(response);</span>
+    }
+
+    //------------------- Create new User ------------------------
+    @PostMapping
+    public ResponseEntity&lt;AppUserDto&gt; create(@RequestBody AppUserRequestDto appUserRequestDto) {
+<span class="fc" id="L46">        AppUserDto response = appUserService.create(appUserRequestDto);</span>
+<span class="fc" id="L47">        return new ResponseEntity&lt;&gt;(response, HttpStatus.CREATED);</span>
+    }
+
+    //------------------- Update User By Id ------------------------
+    @PutMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;AppUserDto&gt; update(@PathVariable int id, @RequestBody AppUserRequestDto appUserRequestDto) {
+<span class="fc" id="L53">        AppUserDto response = appUserService.update(id, appUserRequestDto);</span>
+<span class="fc" id="L54">        return ResponseEntity.ok(response);</span>
+    }
+
+    //------------------- Delete User By Id ------------------------
+    @DeleteMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;Void&gt; delete(@PathVariable int id) {
+<span class="fc" id="L60">        appUserService.delete(id);</span>
+<span class="fc" id="L61">        return ResponseEntity.noContent().build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

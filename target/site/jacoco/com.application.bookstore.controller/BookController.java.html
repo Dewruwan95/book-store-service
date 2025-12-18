@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BookController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">bookstore</a> &gt; <a href="index.source.html" class="el_package">com.application.bookstore.controller</a> &gt; <span class="el_source">BookController.java</span></div><h1>BookController.java</h1><pre class="source lang-java linenums">package com.application.bookstore.controller;
+
+import com.application.bookstore.dto.*;
+import com.application.bookstore.service.BookService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping(&quot;/api/book-store-service/v1/books&quot;)
+@SecurityRequirement(name = &quot;basicAuth&quot;)
+public class BookController {
+
+    private final BookService bookService;
+
+<span class="fc" id="L20">    public BookController(BookService bookService) {</span>
+<span class="fc" id="L21">        this.bookService = bookService;</span>
+<span class="fc" id="L22">    }</span>
+
+    //------------------- Get All Books ------------------------
+    @GetMapping
+    public ResponseEntity&lt;List&lt;BookDto&gt;&gt; getAll() {
+<span class="fc" id="L27">        final List&lt;BookDto&gt; response = bookService.getAll();</span>
+<span class="pc bpc" id="L28" title="1 of 2 branches missed.">        if (response.isEmpty()) {</span>
+
+<span class="nc" id="L30">            return ResponseEntity.noContent().build(); // Better than returning null</span>
+        } else {
+<span class="fc" id="L32">            return ResponseEntity.ok(response);</span>
+        }
+
+    }
+
+
+    //------------------- Get Single Book By Id ------------------------
+    @GetMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;BookDto&gt; getById(@PathVariable int id) {
+<span class="nc" id="L41">        final BookDto response = bookService.getById(id);</span>
+
+<span class="nc" id="L43">        return ResponseEntity.ok(response);</span>
+
+    }
+
+    //------------------- Create New Book ------------------------
+    @PostMapping
+     @PreAuthorize(&quot;hasRole('ADMIN')&quot;)
+    public ResponseEntity&lt;BookDto&gt; save(@RequestBody BookRequestDto bookRequestDto) {
+<span class="fc" id="L51">        final BookDto response = bookService.create(bookRequestDto);</span>
+
+<span class="fc" id="L53">        return new ResponseEntity&lt;&gt;(response, HttpStatus.CREATED);</span>
+    }
+
+
+    //------------------- Create New Book With New Author ------------------------
+    @PostMapping(&quot;/with-author&quot;)
+    public ResponseEntity&lt;BookDto&gt; createBookWithAuthor(@RequestBody BookWithNewAuthorDto book) {
+
+<span class="nc" id="L61">        final BookDto response = bookService.createBookWithNewAuthor(book);</span>
+
+<span class="nc" id="L63">        return new ResponseEntity&lt;&gt;(response, HttpStatus.CREATED);</span>
+    }
+
+
+    //------------------- Update Book With Id ------------------------
+    @PutMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;BookDto&gt; update(@PathVariable int id, @RequestBody BookRequestDto bookRequestDto) {
+<span class="nc" id="L70">        BookDto response = bookService.update(id, bookRequestDto);</span>
+<span class="nc" id="L71">        return ResponseEntity.ok(response);</span>
+    }
+
+
+    //------------------- Attach Existing Author To Book ------------------------
+    @PutMapping(&quot;/{bookId}/author/{authorId}&quot;)
+    public ResponseEntity&lt;BookDto&gt; attachAuthor(@PathVariable int bookId, @PathVariable int authorId) {
+<span class="nc" id="L78">        final BookDto response = bookService.attachAuthor(bookId, authorId);</span>
+
+<span class="nc" id="L80">        return ResponseEntity.ok(response);</span>
+
+    }
+
+    //------------------- Delete Author ------------------------
+    @DeleteMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;Void&gt; deleteById(@PathVariable(&quot;id&quot;) int id) {
+<span class="nc" id="L87">        bookService.delete(id);</span>
+<span class="nc" id="L88">        return ResponseEntity.noContent().build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

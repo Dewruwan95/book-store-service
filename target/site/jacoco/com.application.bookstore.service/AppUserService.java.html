@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AppUserService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">bookstore</a> &gt; <a href="index.source.html" class="el_package">com.application.bookstore.service</a> &gt; <span class="el_source">AppUserService.java</span></div><h1>AppUserService.java</h1><pre class="source lang-java linenums">package com.application.bookstore.service;
+
+import com.application.bookstore.dto.AppUserDto;
+import com.application.bookstore.dto.AppUserRequestDto;
+import com.application.bookstore.exception.AttributeAlreadyExistsException;
+import com.application.bookstore.exception.ValidationException;
+import com.application.bookstore.model.AppUser;
+import com.application.bookstore.repository.AppUserRepository;
+import jakarta.persistence.EntityNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class AppUserService implements UserDetailsService {
+
+<span class="fc" id="L24">    private static final Logger logger = LoggerFactory.getLogger(AppUserService.class);</span>
+
+    private final AppUserRepository appUserRepository;
+    private final PasswordEncoder passwordEncoder;
+
+<span class="fc" id="L29">    public AppUserService(AppUserRepository appUserRepository, PasswordEncoder passwordEncoder) {</span>
+<span class="fc" id="L30">        this.appUserRepository = appUserRepository;</span>
+<span class="fc" id="L31">        this.passwordEncoder = passwordEncoder;</span>
+<span class="fc" id="L32">    }</span>
+
+    //--------------------------------------------------------------
+    //------------------- Get All AppUsers -------------------------
+    //--------------------------------------------------------------
+    public List&lt;AppUserDto&gt; getAll() {
+<span class="fc" id="L38">        logger.info(&quot;Fetching all users&quot;);</span>
+<span class="fc" id="L39">        return toDto(appUserRepository.findAll());</span>
+    }
+
+    //--------------------------------------------------------------
+    //------------------- Get Single AppUser By Id -----------------
+    //--------------------------------------------------------------
+    public AppUserDto getById(int id) {
+<span class="nc" id="L46">        logger.info(&quot;Fetching user with ID: {}&quot;, id);</span>
+<span class="nc" id="L47">        return appUserRepository.findById(id)</span>
+<span class="nc" id="L48">                .map(this::toDto)</span>
+<span class="nc" id="L49">                .orElseThrow(() -&gt; {</span>
+<span class="nc" id="L50">                    logger.warn(&quot;User not found with ID: {}&quot;, id);</span>
+<span class="nc" id="L51">                    return new EntityNotFoundException(&quot;User not found with id &quot; + id);</span>
+                });
+    }
+
+    //--------------------------------------------------------------
+    //------------------- Create New AppUser -----------------------
+    //--------------------------------------------------------------
+    public AppUserDto create(AppUserRequestDto appUserRequestDto) {
+
+<span class="fc" id="L60">        logger.info(&quot;Creating new user with username: {}&quot;, appUserRequestDto.getUsername());</span>
+
+<span class="fc" id="L62">        validateAppUserRequestDto(appUserRequestDto);</span>
+
+<span class="fc" id="L64">        AppUser user = toEntity(appUserRequestDto);</span>
+<span class="fc" id="L65">        user.setPassword(passwordEncoder.encode(user.getPassword()));</span>
+
+<span class="fc" id="L67">        final AppUser savedUser = appUserRepository.save(user);</span>
+<span class="fc" id="L68">        logger.info(&quot;User created successfully with ID: {} and username: {}&quot;, savedUser.getId(), savedUser.getUsername());</span>
+<span class="fc" id="L69">        return toDto(savedUser);</span>
+    }
+
+    //--------------------------------------------------------------
+    //------------------- Update AppUser ---------------------------
+    //--------------------------------------------------------------
+    public AppUserDto update(int id, AppUserRequestDto appUserRequestDto) {
+<span class="nc" id="L76">        logger.info(&quot;Updating user with ID: {}&quot;, id);</span>
+<span class="nc" id="L77">        AppUser existingAppUser = appUserRepository.findById(id)</span>
+<span class="nc" id="L78">                .orElseThrow(() -&gt; {</span>
+<span class="nc" id="L79">                    logger.warn(&quot;Cannot update: User not found with ID: {}&quot;, id);</span>
+<span class="nc" id="L80">                    return new EntityNotFoundException(&quot;AppUser not found with id &quot; + id);</span>
+                });
+
+<span class="nc bnc" id="L83" title="All 2 branches missed.">        if (appUserRequestDto.getUsername() != null) {</span>
+<span class="nc" id="L84">            existingAppUser.setUsername(appUserRequestDto.getUsername());</span>
+        }
+<span class="nc bnc" id="L86" title="All 2 branches missed.">        if (appUserRequestDto.getPassword() != null) {</span>
+<span class="nc" id="L87">            existingAppUser.setPassword(passwordEncoder.encode(appUserRequestDto.getPassword()));</span>
+        }
+<span class="nc bnc" id="L89" title="All 2 branches missed.">        if (appUserRequestDto.getRoles() != null) {</span>
+<span class="nc" id="L90">            existingAppUser.setRoles(appUserRequestDto.getRoles());</span>
+        }
+
+<span class="nc" id="L93">        final AppUser savedUser = appUserRepository.save(existingAppUser);</span>
+<span class="nc" id="L94">        logger.info(&quot;User updated successfully with ID: {}&quot;, savedUser.getId());</span>
+<span class="nc" id="L95">        return toDto(savedUser);</span>
+    }
+
+    //--------------------------------------------------------------
+    //------------------- Delete User ------------------------------
+    //--------------------------------------------------------------
+    public void delete(int id) {
+<span class="nc" id="L102">        logger.info(&quot;Deleting user with ID: {}&quot;, id);</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">        if (!appUserRepository.existsById(id)) {</span>
+<span class="nc" id="L104">            logger.warn(&quot;Attempted to delete non-existent user ID: {}&quot;, id);</span>
+<span class="nc" id="L105">            throw new EntityNotFoundException(&quot;AppUser not found with id &quot; + id);</span>
+        }
+<span class="nc" id="L107">        appUserRepository.deleteById(id);</span>
+<span class="nc" id="L108">        logger.info(&quot;User deleted successfully with ID: {}&quot;, id);</span>
+<span class="nc" id="L109">    }</span>
+
+
+
+    //-------------------------------------------------------------------
+    // ------------ Load AppUser By Username ----------------------------
+    //-------------------------------------------------------------------
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+
+<span class="nc" id="L119">        logger.debug(&quot;Loading user by username: {}&quot;, username);</span>
+
+<span class="nc" id="L121">        final AppUser appUser = appUserRepository.findByUsername(username);</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">        if (appUser == null) {</span>
+<span class="nc" id="L123">            logger.warn(&quot;User not found for username: {}&quot;, username);</span>
+<span class="nc" id="L124">            throw new UsernameNotFoundException(&quot;User not found: &quot; + username);</span>
+        }
+
+<span class="nc" id="L127">        logger.debug(&quot;User found for authentication: {} with roles: {}&quot;, username, appUser.getRoles());</span>
+<span class="nc" id="L128">        return User.withUsername(appUser.getUsername()).password(appUser.getPassword()).roles(appUser.getRoles().split(&quot;,&quot;)).build();</span>
+    }
+
+
+
+    //--------------------------------------------------------------
+    //------------------- Validate AppUserRequestDto ---------------
+    //--------------------------------------------------------------
+    private void validateAppUserRequestDto(AppUserRequestDto appUserRequestDto) {
+<span class="fc bfc" id="L137" title="All 2 branches covered.">        if (appUserRequestDto.getUsername() == null) {</span>
+<span class="fc" id="L138">            throw new ValidationException(&quot;username&quot;);</span>
+        }
+
+<span class="fc bfc" id="L141" title="All 2 branches covered.">        if (appUserRequestDto.getPassword() == null ) {</span>
+<span class="fc" id="L142">            throw new ValidationException(&quot;password&quot;);</span>
+        }
+
+<span class="fc bfc" id="L145" title="All 2 branches covered.">        if (appUserRequestDto.getRoles() == null ) {</span>
+<span class="fc" id="L146">            throw new ValidationException(&quot;roles&quot;);</span>
+        }
+
+        // Check if username already exists in database
+<span class="fc bfc" id="L150" title="All 2 branches covered.">        if (appUserRepository.findByUsername(appUserRequestDto.getUsername()) != null) {</span>
+<span class="fc" id="L151">            throw new AttributeAlreadyExistsException(&quot;AppUser&quot;, &quot;username&quot;, appUserRequestDto.getUsername());</span>
+        }
+<span class="fc" id="L153">    }</span>
+
+    //--------------------------------------------------------------
+    //----------------- Convert AppUser to AppUserDto --------------
+    //--------------------------------------------------------------
+    public List&lt;AppUserDto&gt; toDto(List&lt;AppUser&gt; users) {
+<span class="fc" id="L159">        return users.stream().map(this::toDto).toList();</span>
+    }
+
+    private AppUserDto toDto(AppUser user) {
+<span class="pc bpc" id="L163" title="1 of 2 branches missed.">        if (user == null) {</span>
+<span class="nc" id="L164">            return null;</span>
+        }
+<span class="fc" id="L166">        AppUserDto result = new AppUserDto();</span>
+<span class="fc" id="L167">        result.setId(user.getId());</span>
+<span class="fc" id="L168">        result.setUsername(user.getUsername());</span>
+<span class="fc" id="L169">        result.setRoles(user.getRoles());</span>
+
+<span class="fc" id="L171">        return result;</span>
+    }
+
+    //-------------------------------------------------------------------
+    // ------------ convert AppUserRequestDto to AppUser ----------------
+    //-------------------------------------------------------------------
+    private AppUser toEntity(AppUserRequestDto appUserRequestDto) {
+<span class="pc bpc" id="L178" title="1 of 2 branches missed.">        if (appUserRequestDto == null) {</span>
+<span class="nc" id="L179">            return null;</span>
+        }
+<span class="fc" id="L181">        AppUser result = new AppUser();</span>
+<span class="fc" id="L182">        result.setUsername(appUserRequestDto.getUsername());</span>
+<span class="fc" id="L183">        result.setPassword(appUserRequestDto.getPassword());</span>
+<span class="fc" id="L184">        result.setRoles(appUserRequestDto.getRoles().toUpperCase());</span>
+
+<span class="fc" id="L186">        return result;</span>
+    }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

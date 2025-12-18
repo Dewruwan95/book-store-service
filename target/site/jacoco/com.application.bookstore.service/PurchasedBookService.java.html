@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PurchasedBookService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">bookstore</a> &gt; <a href="index.source.html" class="el_package">com.application.bookstore.service</a> &gt; <span class="el_source">PurchasedBookService.java</span></div><h1>PurchasedBookService.java</h1><pre class="source lang-java linenums">package com.application.bookstore.service;
+
+import com.application.bookstore.dto.PurchasedBookDto;
+import com.application.bookstore.model.Book;
+import com.application.bookstore.model.Customer;
+import com.application.bookstore.model.PurchasedBook;
+import com.application.bookstore.repository.BookRepository;
+import com.application.bookstore.repository.CustomerRepository;
+import com.application.bookstore.repository.PurchasedBookRepository;
+import jakarta.persistence.EntityNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Service
+public class PurchasedBookService {
+<span class="fc" id="L21">    private static final Logger logger = LoggerFactory.getLogger(PurchasedBookService.class);</span>
+
+    private final PurchasedBookRepository purchasedBookRepository;
+    private final CustomerRepository customerRepository;
+    private final BookRepository bookRepository;
+
+    public PurchasedBookService(
+            PurchasedBookRepository purchasedBookRepository,
+            CustomerRepository customerRepository,
+<span class="fc" id="L30">            BookRepository bookRepository) {</span>
+
+<span class="fc" id="L32">        this.purchasedBookRepository = purchasedBookRepository;</span>
+<span class="fc" id="L33">        this.customerRepository = customerRepository;</span>
+<span class="fc" id="L34">        this.bookRepository = bookRepository;</span>
+<span class="fc" id="L35">    }</span>
+
+    //--------------------------------------------------------------
+    //------------------- Get All Purchases ------------------------
+    //--------------------------------------------------------------
+    public List&lt;PurchasedBookDto&gt; getAll() {
+<span class="fc" id="L41">        logger.info(&quot;Fetching all purchases&quot;);</span>
+<span class="fc" id="L42">        return toDto(purchasedBookRepository.findAll());</span>
+    }
+
+    //--------------------------------------------------------------
+    //------------------- Get Single Purchase By Id ----------------
+    //--------------------------------------------------------------
+    public PurchasedBookDto getById(int id) {
+<span class="nc" id="L49">        logger.info(&quot;Fetching purchase with ID: {}&quot;, id);</span>
+<span class="nc" id="L50">        return purchasedBookRepository.findById(id).map(this::toDto).orElseThrow(() -&gt; {</span>
+<span class="nc" id="L51">            logger.warn(&quot;Purchase not found with ID: {}&quot;, id);</span>
+<span class="nc" id="L52">            return new EntityNotFoundException(&quot;Purchase not found with id &quot; + id);</span>
+        });
+    }
+
+    //--------------------------------------------------------------
+    //------------------- Create New Purchase ----------------------
+    //--------------------------------------------------------------
+    public PurchasedBookDto create(PurchasedBookDto purchasedBookDto) {
+<span class="fc" id="L60">        logger.info(&quot;Creating new purchase - Customer ID: {}, Book ID: {}&quot;,</span>
+<span class="fc" id="L61">                purchasedBookDto.getCustomerId(), purchasedBookDto.getBookId());</span>
+
+<span class="fc" id="L63">        Customer customer = customerRepository.findById(purchasedBookDto.getCustomerId())</span>
+<span class="fc" id="L64">                .orElseThrow(() -&gt; {</span>
+<span class="nc" id="L65">                    logger.warn(&quot;Cannot create purchase: Customer not found with ID: {}&quot;, purchasedBookDto.getCustomerId());</span>
+<span class="nc" id="L66">                    return new EntityNotFoundException(&quot;Customer not found with id &quot; + purchasedBookDto.getCustomerId());</span>
+                });
+
+<span class="fc" id="L69">        Book book = bookRepository.findById(purchasedBookDto.getBookId())</span>
+<span class="fc" id="L70">                .orElseThrow(() -&gt; {</span>
+<span class="nc" id="L71">                    logger.warn(&quot;Cannot create purchase: Book not found with ID: {}&quot;, purchasedBookDto.getBookId());</span>
+<span class="nc" id="L72">                    return new EntityNotFoundException(&quot;Book not found with id &quot; + purchasedBookDto.getBookId());</span>
+                });
+
+<span class="fc" id="L75">        PurchasedBook purchasedBook = toEntity(purchasedBookDto, customer, book);</span>
+<span class="fc" id="L76">        final PurchasedBook savedPurchasedBook = purchasedBookRepository.save(purchasedBook);</span>
+
+<span class="fc" id="L78">        logger.info(&quot;Purchase created successfully with ID: {}, Customer: {} {}, Book: {}&quot;,</span>
+<span class="fc" id="L79">                savedPurchasedBook.getId(),</span>
+<span class="fc" id="L80">                customer.getFirstName(), customer.getLastName(),</span>
+<span class="fc" id="L81">                book.getTitle());</span>
+
+<span class="fc" id="L83">        return toDto(savedPurchasedBook);</span>
+    }
+
+    //--------------------------------------------------------------
+    //------------------- Delete Purchase --------------------------
+    //--------------------------------------------------------------
+    public void delete(int id) {
+<span class="nc" id="L90">        logger.info(&quot;Deleting purchase with ID: {}&quot;, id);</span>
+
+<span class="nc bnc" id="L92" title="All 2 branches missed.">        if (!purchasedBookRepository.existsById(id)) {</span>
+<span class="nc" id="L93">            logger.warn(&quot;Attempted to delete non-existent purchase ID: {}&quot;, id);</span>
+<span class="nc" id="L94">            throw new EntityNotFoundException(&quot;Purchase not found with id &quot; + id);</span>
+        }
+
+<span class="nc" id="L97">        purchasedBookRepository.deleteById(id);</span>
+<span class="nc" id="L98">        logger.info(&quot;Purchase deleted successfully with ID: {}&quot;, id);</span>
+<span class="nc" id="L99">    }</span>
+
+    //--------------------------------------------------------------
+    //------------------- Convert PurchasedBook to PurchasedBookDto
+    //--------------------------------------------------------------
+    public List&lt;PurchasedBookDto&gt; toDto(List&lt;PurchasedBook&gt; purchasedBooks) {
+<span class="fc" id="L105">        return purchasedBooks.stream().map(this::toDto).toList();</span>
+    }
+
+    private PurchasedBookDto toDto(PurchasedBook purchasedBook) {
+<span class="pc bpc" id="L109" title="1 of 2 branches missed.">        if (purchasedBook == null) {</span>
+<span class="nc" id="L110">            return null;</span>
+        }
+
+<span class="fc" id="L113">        PurchasedBookDto result = new PurchasedBookDto();</span>
+<span class="fc" id="L114">        result.setPurchaseId(purchasedBook.getId());</span>
+<span class="fc" id="L115">        result.setPurchaseDate(purchasedBook.getPurchaseDate());</span>
+<span class="fc" id="L116">        result.setCustomerId(purchasedBook.getCustomer().getId());</span>
+<span class="fc" id="L117">        result.setBookId(purchasedBook.getBook().getId());</span>
+
+<span class="fc" id="L119">        return result;</span>
+    }
+
+    //--------------------------------------------------------------
+    // ------------ convert PurchasedBookDto to PurchasedBook ------
+    //--------------------------------------------------------------
+    private PurchasedBook toEntity(PurchasedBookDto purchasedBookDto, Customer customer, Book book) {
+<span class="pc bpc" id="L126" title="1 of 2 branches missed.">        if (purchasedBookDto == null) {</span>
+<span class="nc" id="L127">            return null;</span>
+        }
+
+<span class="fc" id="L130">        PurchasedBook result = new PurchasedBook();</span>
+<span class="fc" id="L131">        result.setCustomer(customer);</span>
+<span class="fc" id="L132">        result.setBook(book);</span>
+<span class="fc" id="L133">        result.setPurchaseDate(LocalDate.from(LocalDateTime.now()));</span>
+
+<span class="fc" id="L135">        return result;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CustomerService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">bookstore</a> &gt; <a href="index.source.html" class="el_package">com.application.bookstore.service</a> &gt; <span class="el_source">CustomerService.java</span></div><h1>CustomerService.java</h1><pre class="source lang-java linenums">package com.application.bookstore.service;
+
+import com.application.bookstore.dto.CustomerDto;
+import com.application.bookstore.dto.CustomerRequestDto;
+import com.application.bookstore.exception.AttributeAlreadyExistsException;
+import com.application.bookstore.exception.ValidationException;
+import com.application.bookstore.model.Customer;
+import com.application.bookstore.repository.CustomerRepository;
+import jakarta.persistence.EntityNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class CustomerService {
+
+<span class="fc" id="L19">    private static final Logger logger = LoggerFactory.getLogger(CustomerService.class);</span>
+
+    private final CustomerRepository customerRepository;
+
+<span class="fc" id="L23">    public CustomerService(CustomerRepository customerRepository) {</span>
+<span class="fc" id="L24">        this.customerRepository = customerRepository;</span>
+<span class="fc" id="L25">    }</span>
+
+    //--------------------------------------------------------------
+    //------------------- Get All Customers ------------------------
+    //--------------------------------------------------------------
+    public List&lt;CustomerDto&gt; getAll() {
+<span class="fc" id="L31">        logger.info(&quot;Fetching all customers&quot;);</span>
+<span class="fc" id="L32">        return toDto(customerRepository.findAll());</span>
+    }
+
+    //--------------------------------------------------------------
+    //------------------- Get Single Customer By Id ----------------
+    //--------------------------------------------------------------
+    public CustomerDto getById(int id) {
+<span class="nc" id="L39">        logger.info(&quot;Fetching customer with ID: {}&quot;, id);</span>
+<span class="nc" id="L40">        return customerRepository.findById(id).map(this::toDto).orElseThrow(() -&gt; {</span>
+<span class="nc" id="L41">            logger.warn(&quot;Customer not found with ID: {}&quot;, id);</span>
+<span class="nc" id="L42">            return new EntityNotFoundException(&quot;Customer not found with id &quot; + id);</span>
+        });
+    }
+
+    //--------------------------------------------------------------
+    //------------------- Create New Customer ----------------------
+    //--------------------------------------------------------------
+    public CustomerDto create(CustomerRequestDto customerRequestDto) {
+
+<span class="fc" id="L51">        logger.info(&quot;Creating new customer with email: {}&quot;, customerRequestDto.getEmail());</span>
+
+<span class="fc" id="L53">        validateCustomerRequestDto(customerRequestDto);</span>
+
+<span class="fc" id="L55">        Customer customer = toEntity(customerRequestDto);</span>
+<span class="fc" id="L56">        final Customer savedCustomer = customerRepository.save(customer);</span>
+
+<span class="fc" id="L58">        logger.info(&quot;Customer created successfully with ID: {} and email: {}&quot;, savedCustomer.getId(), savedCustomer.getEmail());</span>
+
+<span class="fc" id="L60">        return toDto(savedCustomer);</span>
+    }
+
+    //--------------------------------------------------------------
+    //------------------- Update Customer --------------------------
+    //--------------------------------------------------------------
+    public CustomerDto update(int id, CustomerRequestDto customerRequestDto) {
+
+<span class="nc" id="L68">        logger.info(&quot;Updating customer with ID: {}&quot;, id);</span>
+
+<span class="nc" id="L70">        Customer existingCustomer = customerRepository.findById(id).orElseThrow(() -&gt; {</span>
+<span class="nc" id="L71">            logger.warn(&quot;Cannot update: Customer not found with ID: {}&quot;, id);</span>
+<span class="nc" id="L72">            return new EntityNotFoundException(&quot;Customer not found with id &quot; + id);</span>
+        });
+
+<span class="nc bnc" id="L75" title="All 2 branches missed.">        if (customerRequestDto.getFirstName() != null) {</span>
+<span class="nc" id="L76">            existingCustomer.setFirstName(customerRequestDto.getFirstName());</span>
+        }
+<span class="nc bnc" id="L78" title="All 2 branches missed.">        if (customerRequestDto.getLastName() != null) {</span>
+<span class="nc" id="L79">            existingCustomer.setLastName(customerRequestDto.getLastName());</span>
+        }
+<span class="nc bnc" id="L81" title="All 2 branches missed.">        if (customerRequestDto.getEmail() != null) {</span>
+<span class="nc" id="L82">            existingCustomer.setEmail(customerRequestDto.getEmail());</span>
+        }
+<span class="nc bnc" id="L84" title="All 2 branches missed.">        if (customerRequestDto.getPhoneNumber() != null) {</span>
+<span class="nc" id="L85">            existingCustomer.setPhoneNumber(customerRequestDto.getPhoneNumber());</span>
+        }
+<span class="nc bnc" id="L87" title="All 2 branches missed.">        if (customerRequestDto.getAddress() != null) {</span>
+<span class="nc" id="L88">            existingCustomer.setAddress(customerRequestDto.getAddress());</span>
+        }
+
+<span class="nc" id="L91">        final Customer savedCustomer = customerRepository.save(existingCustomer);</span>
+
+<span class="nc" id="L93">        logger.info(&quot;Customer updated successfully with ID: {}&quot;, savedCustomer.getId());</span>
+
+<span class="nc" id="L95">        return toDto(savedCustomer);</span>
+    }
+
+    //--------------------------------------------------------------
+    //------------------- Delete Customer --------------------------
+    //--------------------------------------------------------------
+    public void delete(int id) {
+
+<span class="nc" id="L103">        logger.info(&quot;Deleting customer with ID: {}&quot;, id);</span>
+
+<span class="nc bnc" id="L105" title="All 2 branches missed.">        if (!customerRepository.existsById(id)) {</span>
+<span class="nc" id="L106">            logger.warn(&quot;Attempted to delete non-existent customer ID: {}&quot;, id);</span>
+<span class="nc" id="L107">            throw new EntityNotFoundException(&quot;Customer not found with id &quot; + id);</span>
+        }
+<span class="nc" id="L109">        customerRepository.deleteById(id);</span>
+<span class="nc" id="L110">        logger.info(&quot;Customer deleted successfully with ID: {}&quot;, id);</span>
+<span class="nc" id="L111">    }</span>
+
+
+    //--------------------------------------------------------------
+    //------------------- Validate CustomerRequestDto --------------
+    //--------------------------------------------------------------
+    private void validateCustomerRequestDto(CustomerRequestDto customerRequestDto) {
+<span class="pc bpc" id="L118" title="1 of 2 branches missed.">        if (customerRequestDto.getFirstName() == null) {</span>
+<span class="nc" id="L119">            throw new ValidationException(&quot;firstName&quot;);</span>
+        }
+
+<span class="pc bpc" id="L122" title="1 of 2 branches missed.">        if (customerRequestDto.getLastName() == null) {</span>
+<span class="nc" id="L123">            throw new ValidationException(&quot;lastName&quot;);</span>
+        }
+
+<span class="pc bpc" id="L126" title="1 of 2 branches missed.">        if (customerRequestDto.getEmail() == null) {</span>
+<span class="nc" id="L127">            throw new ValidationException(&quot;email&quot;);</span>
+        }
+
+<span class="pc bpc" id="L130" title="1 of 2 branches missed.">        if (!customerRequestDto.getEmail().matches(&quot;^[A-Za-z0-9+_.-]+@(.+)$&quot;)) {</span>
+<span class="nc" id="L131">            throw new ValidationException(&quot;email&quot;, &quot;Invalid email format&quot;);</span>
+        }
+
+        // Check if email already exists in database
+<span class="pc bpc" id="L135" title="1 of 2 branches missed.">        if (customerRepository.findByEmail(customerRequestDto.getEmail()) != null) {</span>
+<span class="nc" id="L136">            throw new AttributeAlreadyExistsException(&quot;Customer&quot;, &quot;email&quot;, customerRequestDto.getEmail());</span>
+        }
+
+<span class="pc bpc" id="L139" title="1 of 2 branches missed.">        if (customerRequestDto.getPhoneNumber() == null) {</span>
+<span class="nc" id="L140">            throw new ValidationException(&quot;phoneNumber&quot;);</span>
+        }
+
+<span class="pc bpc" id="L143" title="1 of 2 branches missed.">        if (customerRequestDto.getAddress() == null) {</span>
+<span class="nc" id="L144">            throw new ValidationException(&quot;address&quot;);</span>
+        }
+
+
+<span class="fc" id="L148">    }</span>
+
+    //--------------------------------------------------------------
+    //----------------- Convert Customer to CustomerDto ------------
+    //--------------------------------------------------------------
+    public List&lt;CustomerDto&gt; toDto(List&lt;Customer&gt; customers) {
+
+<span class="fc" id="L155">        return customers.stream().map(this::toDto).toList();</span>
+    }
+
+
+    private CustomerDto toDto(Customer customer) {
+<span class="pc bpc" id="L160" title="1 of 2 branches missed.">        if (customer == null) {</span>
+<span class="nc" id="L161">            return null;</span>
+        }
+<span class="fc" id="L163">        CustomerDto result = new CustomerDto();</span>
+<span class="fc" id="L164">        result.setId(customer.getId());</span>
+<span class="fc" id="L165">        result.setFirstName(customer.getFirstName());</span>
+<span class="fc" id="L166">        result.setLastName(customer.getLastName());</span>
+<span class="fc" id="L167">        result.setFullName(customer.getFirstName() + &quot; &quot; + customer.getLastName());</span>
+<span class="fc" id="L168">        result.setEmail(customer.getEmail());</span>
+<span class="fc" id="L169">        result.setPhoneNumber(customer.getPhoneNumber());</span>
+<span class="fc" id="L170">        result.setAddress(customer.getAddress());</span>
+
+<span class="fc" id="L172">        return result;</span>
+
+    }
+
+    //--------------------------------------------------------------
+    // ------------ convert CustomerDto to Customer ----------------
+    //--------------------------------------------------------------
+    private Customer toEntity(CustomerRequestDto customerRequestDto) {
+<span class="pc bpc" id="L180" title="1 of 2 branches missed.">        if (customerRequestDto == null) {</span>
+<span class="nc" id="L181">            return null;</span>
+        }
+<span class="fc" id="L183">        Customer result = new Customer();</span>
+<span class="fc" id="L184">        result.setFirstName(customerRequestDto.getFirstName());</span>
+<span class="fc" id="L185">        result.setLastName(customerRequestDto.getLastName());</span>
+<span class="fc" id="L186">        result.setEmail(customerRequestDto.getEmail());</span>
+<span class="fc" id="L187">        result.setPhoneNumber(customerRequestDto.getPhoneNumber());</span>
+<span class="fc" id="L188">        result.setAddress(customerRequestDto.getAddress());</span>
+
+<span class="fc" id="L190">        return result;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

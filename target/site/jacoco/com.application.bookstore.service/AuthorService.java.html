@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AuthorService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">bookstore</a> &gt; <a href="index.source.html" class="el_package">com.application.bookstore.service</a> &gt; <span class="el_source">AuthorService.java</span></div><h1>AuthorService.java</h1><pre class="source lang-java linenums">package com.application.bookstore.service;
+
+import com.application.bookstore.dto.*;
+import com.application.bookstore.exception.AttributeAlreadyExistsException;
+import com.application.bookstore.exception.ValidationException;
+import com.application.bookstore.model.Author;
+import com.application.bookstore.model.Book;
+import com.application.bookstore.repository.AuthorRepository;
+import com.application.bookstore.repository.BookRepository;
+import jakarta.persistence.EntityNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
+public class AuthorService {
+
+<span class="fc" id="L21">    private static final Logger logger = LoggerFactory.getLogger(AuthorService.class);</span>
+
+    private final AuthorRepository authorRepository;
+
+    private final BookRepository bookRepository;
+
+<span class="fc" id="L27">    public AuthorService(AuthorRepository authorRepository, BookRepository bookRepository) {</span>
+<span class="fc" id="L28">        this.authorRepository = authorRepository;</span>
+<span class="fc" id="L29">        this.bookRepository = bookRepository;</span>
+<span class="fc" id="L30">    }</span>
+
+
+    //--------------------------------------------------------------
+    //------------------- Get All Authors-- ------------------------
+    //--------------------------------------------------------------
+    public List&lt;AuthorDto&gt; getAll() {
+
+<span class="fc" id="L38">        logger.info(&quot;Fetching all authors&quot;);</span>
+<span class="fc" id="L39">        return toDto(authorRepository.findAll());</span>
+
+    }
+
+    //--------------------------------------------------------------
+    //------------------- Get Single Author By Id-------------------
+    //--------------------------------------------------------------
+    public AuthorDto getById(int id) {
+
+<span class="nc" id="L48">        logger.info(&quot;Fetching author with ID: {}&quot;, id);</span>
+<span class="nc" id="L49">        return authorRepository.findById(id).map(this::toDto).orElseThrow(() -&gt; {</span>
+<span class="nc" id="L50">            logger.warn(&quot;Author not found with ID: {}&quot;, id);</span>
+<span class="nc" id="L51">            return new EntityNotFoundException(&quot;Author not found with id &quot; + id);</span>
+        });
+    }
+
+
+    //--------------------------------------------------------------
+    //------------------- Create New Author ------------------------
+    //--------------------------------------------------------------
+    public AuthorDto create(AuthorRequestDto authorRequestDto) {
+
+<span class="fc" id="L61">        logger.info(&quot;Creating author with email: {}&quot;, authorRequestDto.getEmail());</span>
+
+<span class="fc" id="L63">        validateAuthorRequestDto(authorRequestDto);</span>
+<span class="fc" id="L64">        validateEmailUniqueness(authorRequestDto.getEmail());</span>
+
+<span class="fc" id="L66">        Author author = toEntity(authorRequestDto);</span>
+<span class="fc" id="L67">        final Author savedAuthor = authorRepository.save(author);</span>
+
+<span class="fc" id="L69">        logger.info(&quot;Author created with ID: {} and email: {}&quot;, savedAuthor.getId(), savedAuthor.getEmail());</span>
+
+<span class="fc" id="L71">        return toDto(savedAuthor);</span>
+    }
+
+    //--------------------------------------------------------------
+    //------------------- Create New Author With Book --------------
+    //--------------------------------------------------------------
+    public AuthorDto createWithBooks(AuthorWithBookRequestDto authorWithBookRequestDto) {
+
+<span class="nc" id="L79">        logger.info(&quot;Creating author with books - Email: {}, Book IDs: {}&quot;, authorWithBookRequestDto.getAuthor().getEmail(), authorWithBookRequestDto.getBookIds().size());</span>
+
+<span class="nc" id="L81">        AuthorRequestDto authorRequestDto = authorWithBookRequestDto.getAuthor();</span>
+
+<span class="nc" id="L83">        validateAuthorRequestDto(authorRequestDto);</span>
+<span class="nc" id="L84">        validateEmailUniqueness(authorRequestDto.getEmail());</span>
+
+<span class="nc" id="L86">        Author author = toEntity(authorRequestDto);</span>
+
+
+<span class="nc" id="L89">        List&lt;Book&gt; books = new ArrayList&lt;&gt;(bookRepository.findAllById(authorWithBookRequestDto.getBookIds()));</span>
+
+<span class="nc bnc" id="L91" title="All 2 branches missed.">        for (Book book : books) {</span>
+<span class="nc" id="L92">            book.getAuthors().add(author);</span>
+<span class="nc" id="L93">        }</span>
+
+<span class="nc" id="L95">        author.setBooks(books);</span>
+
+<span class="nc" id="L97">        final Author savedAuthor = authorRepository.save(author);</span>
+<span class="nc" id="L98">        logger.info(&quot;Author created successfully with ID: {} and {} associated books&quot;, savedAuthor.getId(), books.size());</span>
+<span class="nc" id="L99">        return toDto(savedAuthor);</span>
+
+
+    }
+
+    //--------------------------------------------------------------
+    //------------------- Update Author ----------------------------
+    //--------------------------------------------------------------
+    public AuthorDto update(int id, AuthorDto authorDto) {
+
+<span class="nc" id="L109">        logger.info(&quot;Updating author with ID: {}&quot;, id);</span>
+
+<span class="nc" id="L111">        Author existingAuthor = authorRepository.findById(id).orElseThrow(() -&gt; {</span>
+<span class="nc" id="L112">            logger.warn(&quot;Cannot update: Author not found with ID: {}&quot;, id);</span>
+<span class="nc" id="L113">            return new EntityNotFoundException(&quot;Author not found with id &quot; + id);</span>
+        });
+
+<span class="nc bnc" id="L116" title="All 2 branches missed.">        if (authorDto.getFirstName() != null) {</span>
+<span class="nc" id="L117">            existingAuthor.setFirstName(authorDto.getFirstName());</span>
+        }
+<span class="nc bnc" id="L119" title="All 2 branches missed.">        if (authorDto.getLastName() != null) {</span>
+<span class="nc" id="L120">            existingAuthor.setLastName(authorDto.getLastName());</span>
+        }
+<span class="nc bnc" id="L122" title="All 2 branches missed.">        if (authorDto.getEmail() != null) {</span>
+<span class="nc" id="L123">            existingAuthor.setEmail(authorDto.getEmail());</span>
+        }
+<span class="nc bnc" id="L125" title="All 2 branches missed.">        if (authorDto.getNationality() != null) {</span>
+<span class="nc" id="L126">            existingAuthor.setNationality(authorDto.getNationality());</span>
+        }
+
+
+<span class="nc" id="L130">        final Author savedAuthor = authorRepository.save(existingAuthor);</span>
+
+<span class="nc" id="L132">        logger.info(&quot;Author updated successfully with ID: {}&quot;, savedAuthor.getId());</span>
+<span class="nc" id="L133">        return toDto(savedAuthor);</span>
+    }
+
+
+    //--------------------------------------------------------------
+    //------------------- Delete Author ----------------------------
+    //--------------------------------------------------------------
+    public void delete(int id) {
+
+<span class="nc" id="L142">        logger.info(&quot;Deleting author with ID: {}&quot;, id);</span>
+
+<span class="nc bnc" id="L144" title="All 2 branches missed.">        if (!authorRepository.existsById(id)) {</span>
+
+<span class="nc" id="L146">            logger.warn(&quot;Attempted to delete non-existent author ID: {}&quot;, id);</span>
+<span class="nc" id="L147">            throw new EntityNotFoundException(&quot;Author not found with id &quot; + id);</span>
+        }
+<span class="nc" id="L149">        authorRepository.deleteById(id);</span>
+<span class="nc" id="L150">        logger.info(&quot;Author deleted successfully with ID: {}&quot;, id);</span>
+<span class="nc" id="L151">    }</span>
+
+
+    //--------------------------------------------------------------
+    //------------------- Validate AuthorRequestDto --------------
+    //--------------------------------------------------------------
+    public void validateAuthorRequestDto(AuthorRequestDto authorRequestDto) {
+<span class="pc bpc" id="L158" title="1 of 2 branches missed.">        if (authorRequestDto.getFirstName() == null) {</span>
+<span class="nc" id="L159">            throw new ValidationException(&quot;firstName&quot;);</span>
+        }
+
+<span class="pc bpc" id="L162" title="1 of 2 branches missed.">        if (authorRequestDto.getLastName() == null) {</span>
+<span class="nc" id="L163">            throw new ValidationException(&quot;lastName&quot;);</span>
+        }
+
+<span class="pc bpc" id="L166" title="1 of 2 branches missed.">        if (authorRequestDto.getEmail() == null) {</span>
+<span class="nc" id="L167">            throw new ValidationException(&quot;email&quot;);</span>
+        }
+
+<span class="pc bpc" id="L170" title="1 of 2 branches missed.">        if (!authorRequestDto.getEmail().matches(&quot;^[A-Za-z0-9+_.-]+@(.+)$&quot;)) {</span>
+<span class="nc" id="L171">            throw new ValidationException(&quot;email&quot;, &quot;Invalid email format&quot;);</span>
+        }
+
+<span class="pc bpc" id="L174" title="1 of 2 branches missed.">        if (authorRequestDto.getNationality() == null) {</span>
+<span class="nc" id="L175">            throw new ValidationException(&quot;nationality&quot;);</span>
+        }
+
+<span class="fc" id="L178">    }</span>
+
+    //--------------------------------------------------------------
+    //------------------- Check Email Uniqueness -------------------
+    //--------------------------------------------------------------
+    private void validateEmailUniqueness(String email) {
+<span class="pc bpc" id="L184" title="1 of 2 branches missed.">        if (authorRepository.findByEmail(email) != null) {</span>
+<span class="nc" id="L185">            throw new AttributeAlreadyExistsException(&quot;Author&quot;, &quot;email&quot;, email);</span>
+        }
+
+<span class="fc" id="L188">    }</span>
+
+    //--------------------------------------------------------------
+    //----------------- Convert Author to AuthorDto ----------------
+    //--------------------------------------------------------------
+    public List&lt;AuthorDto&gt; toDto(List&lt;Author&gt; authors) {
+<span class="fc" id="L194">        return authors.stream().map(this::toDto).toList();</span>
+    }
+
+    private AuthorDto toDto(Author author) {
+<span class="pc bpc" id="L198" title="1 of 2 branches missed.">        if (author == null) {</span>
+<span class="nc" id="L199">            return null;</span>
+        }
+
+<span class="fc" id="L202">        AuthorDto result = new AuthorDto();</span>
+<span class="fc" id="L203">        result.setId(author.getId());</span>
+<span class="fc" id="L204">        result.setFirstName(author.getFirstName());</span>
+<span class="fc" id="L205">        result.setLastName(author.getLastName());</span>
+<span class="fc" id="L206">        result.setEmail(author.getEmail());</span>
+<span class="fc" id="L207">        result.setNationality(author.getNationality());</span>
+
+<span class="fc" id="L209">        final List&lt;BookRequestDto&gt; bookRequestDtos = author.getBooks().stream().map(book -&gt; {</span>
+<span class="nc" id="L210">            BookRequestDto bookRequestDto = new BookRequestDto();</span>
+<span class="nc" id="L211">            bookRequestDto.setTitle(book.getTitle());</span>
+<span class="nc" id="L212">            bookRequestDto.setPrice(book.getPrice());</span>
+<span class="nc" id="L213">            bookRequestDto.setGenre(book.getGenre());</span>
+<span class="nc" id="L214">            bookRequestDto.setStock(book.getStock());</span>
+<span class="nc" id="L215">            return bookRequestDto;</span>
+<span class="fc" id="L216">        }).toList();</span>
+<span class="fc" id="L217">        result.setBookIds(bookRequestDtos);</span>
+
+<span class="fc" id="L219">        return result;</span>
+    }
+
+
+    //--------------------------------------------------------------
+    // ------------ convert AuthorDto to Author --------------------
+    //--------------------------------------------------------------
+    public Author toEntity(AuthorRequestDto authorDto) {
+<span class="pc bpc" id="L227" title="1 of 2 branches missed.">        if (authorDto == null) {</span>
+
+<span class="nc" id="L229">            return null;</span>
+        }
+<span class="fc" id="L231">        Author author = new Author();</span>
+<span class="fc" id="L232">        author.setFirstName(authorDto.getFirstName());</span>
+<span class="fc" id="L233">        author.setLastName(authorDto.getLastName());</span>
+<span class="fc" id="L234">        author.setEmail(authorDto.getEmail());</span>
+<span class="fc" id="L235">        author.setNationality(authorDto.getNationality());</span>
+
+<span class="fc" id="L237">        return author;</span>
+    }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

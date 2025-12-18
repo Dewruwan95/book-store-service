@@ -17,6 +17,7 @@
 /Users/dewruwan/Downloads/Final Project/bookstore/src/main/java/com/application/bookstore/dto/CustomerDto.java
 /Users/dewruwan/Downloads/Final Project/bookstore/src/main/java/com/application/bookstore/dto/CustomerRequestDto.java
 /Users/dewruwan/Downloads/Final Project/bookstore/src/main/java/com/application/bookstore/dto/PurchasedBookDto.java
+/Users/dewruwan/Downloads/Final Project/bookstore/src/main/java/com/application/bookstore/dto/PurchasedBookRequestDto.java
 /Users/dewruwan/Downloads/Final Project/bookstore/src/main/java/com/application/bookstore/exception/AttributeAlreadyExistsException.java
 /Users/dewruwan/Downloads/Final Project/bookstore/src/main/java/com/application/bookstore/exception/GlobalExceptionHandler.java
 /Users/dewruwan/Downloads/Final Project/bookstore/src/main/java/com/application/bookstore/exception/ValidationException.java
